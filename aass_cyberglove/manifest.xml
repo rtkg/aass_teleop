@@ -1,0 +1,26 @@
+<package>
+  <description brief="glove_teleop">
+
+
+  </description>
+  <author>Robert Krug</author>
+  <license>GPL</license>
+  <review status="unreviewed" notes=""/>
+  <depend package="roslib"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="diagnostic_msgs"/>
+  <depend package="tinyxml"/>
+
+
+  <export>
+    <cpp cflags="-I${prefix}/include/"/>
+    <python path="${prefix}/python_lib"/>
+    <python path="${prefix}/src"/>
+  </export>
+
+</package>
+
+

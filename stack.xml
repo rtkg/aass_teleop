@@ -1,0 +1,8 @@
+<stack>
+  <description brief="aass_teleop">aass_icr</description>
+  <author>Maintained by Robert Krug</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <depend stack="ros" />
+
+</stack>

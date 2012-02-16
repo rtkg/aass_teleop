@@ -1,0 +1,10 @@
+<launch>
+  <!-- shadowhand to cyberglove remapper -->
+  <node pkg="cyberglove_remapper" name="aass_cyberglove_remapper" type="aass_cyberglove_remapper" output="screen">
+    <param name="cyberglove_prefix" type="string" value="/aass_cyberglove/" />
+    <param name="sendupdate_prefix" type="string" value="/srh/" />
+    <param name="mapping_abg_path" type="string" value="$(find cyberglove_remapper)/param/abg.txt" />
+    <param name="mapping_gains_path" type="string" value="$(find cyberglove_remapper)/param/gains.txt" />
+  </node>
+</launch>
+

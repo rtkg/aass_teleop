@@ -1,0 +1,5 @@
+<launch>
+   <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
+   <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
+</launch>
+
