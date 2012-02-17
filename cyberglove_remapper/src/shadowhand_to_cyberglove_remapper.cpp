@@ -44,7 +44,7 @@ namespace shadowhand_to_cyberglove_remapper
 const int ShadowhandToCybergloveRemapper::number_hand_joints_ = 20;
 
 ShadowhandToCybergloveRemapper::ShadowhandToCybergloveRemapper() :
-  n_tilde_("~")
+  n_tilde_("~"), eigenspace_parser_(new EigenspaceParser()), espace_projection_(false)
 {
     joints_names_.resize(number_hand_joints_);
     ShadowhandToCybergloveRemapper::initNames();
@@ -80,6 +80,7 @@ ShadowhandToCybergloveRemapper::ShadowhandToCybergloveRemapper() :
 ShadowhandToCybergloveRemapper::~ShadowhandToCybergloveRemapper()
 {
   delete calibration_parser_;
+  delete eigenspace_parser_;
 }
 
 void ShadowhandToCybergloveRemapper::initNames()

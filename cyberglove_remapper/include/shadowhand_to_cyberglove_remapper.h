@@ -36,6 +36,7 @@
 //messages
 #include <sensor_msgs/JointState.h>
 #include "calibration_parser.h"
+#include "eigenspace_parser.h"
 
 using namespace ros;
 
@@ -58,7 +59,7 @@ class ShadowhandToCybergloveRemapper
    * Number of joints in the hand
    */
   static const int number_hand_joints_;
-
+  
   /**
    * Init the vector containing the joints names
    *
@@ -99,6 +100,8 @@ class ShadowhandToCybergloveRemapper
   Publisher shadowhand_pub_;
   ///the calibration parser containing the mapping matrix
   CalibrationParser* calibration_parser_;
+  EigenspaceParser* eigenspace_parser_;
+  bool espace_projection_;
 
   /////////////////
   //  CALLBACKS  //
