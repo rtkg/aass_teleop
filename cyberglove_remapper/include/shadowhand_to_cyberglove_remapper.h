@@ -36,7 +36,6 @@
 //messages
 #include <sensor_msgs/JointState.h>
 #include "calibration_parser.h"
-#include "eigenspace_parser.h"
 
 using namespace ros;
 
@@ -101,7 +100,6 @@ class ShadowhandToCybergloveRemapper
   ///the calibration parser containing the mapping matrix
   CalibrationParser* calibration_parser_;
 
-  EigenspaceParser* eigenspace_parser_;
   /////////////////
   //  CALLBACKS  //
   /////////////////
