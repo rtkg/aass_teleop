@@ -8,11 +8,11 @@
 *
 *
 */
-//Modified 2012/02/14 by Robert Krug to incorporate the UHAM mapping via linear regression
-
 
 #ifndef   	EIGENSPACE_PARSER_H_
-# define   	EIGENSPACE_PARSER_H_
+#define   	EIGENSPACE_PARSER_H_
+
+#define MAX_DIM 50
 
 #include <iostream>
 #include <sstream>
@@ -37,18 +37,31 @@ public:
   *
   */
   EigenspaceParser();
-  ~EigenspaceParser();
+  ~EigenspaceParser(){};
+
+  void loadEspace(std::string const espace_type);
 
 private:
 
-  Eigen::Matrix
-
+/**
+  * Flag indicating whether the eigenspace projection is active or not
+  */
+  bool espace_loaded_;
+/**
+  * Matrix holding the basis vector of the currently used eigenspace
+  */
+  Eigen::MatrixXd espace_;
+/**
+  * Vector with the mean values of the corresponding eigenspace
+  */
+  Eigen::VectorXd espace_offset_;
+  
   inline double convertToDouble(std::string const& s)
   {
     std::istringstream i(s);
     double x;
     if (!(i >> x))
-      ROS_ERROR("Bad calibration file: %s", s.c_str());
+      ROS_ERROR("Bad eigenspace file: %s", s.c_str());
     return x;
   }
 }; // end class
