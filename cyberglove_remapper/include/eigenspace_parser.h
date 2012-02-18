@@ -37,9 +37,11 @@ public:
   *
   */
   EigenspaceParser();
+  EigenspaceParser(std::string espace_dir);
+
   ~EigenspaceParser(){};
 
-  void loadEspace(std::string const espace_type);
+  void readEspace(std::string espace_type);
 
 private:
 
@@ -55,6 +57,8 @@ private:
   * Vector with the mean values of the corresponding eigenspace
   */
   Eigen::VectorXd espace_offset_;
+
+  std::string espace_dir_;
   
   inline double convertToDouble(std::string const& s)
   {
