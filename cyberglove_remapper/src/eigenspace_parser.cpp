@@ -8,27 +8,139 @@
 
 namespace shadowhand_to_cyberglove_remapper {
 
-  EigenspaceParser::EigenspaceParser() : espace_loaded_(false), espace_(MAX_DIM,MAX_DIM), 
-                                         espace_offset_(MAX_DIM),espace_dir_("../param/")
+  EigenspaceParser::EigenspaceParser() : espace_set_(false), espace_dir_("../param/")
   {
     ROS_WARN("No eigenspace directory was specified, using the default directory");
+    setEspace("Global");
   }
 
-  EigenspaceParser::EigenspaceParser(std::string espace_dir) : espace_loaded_(false), espace_(MAX_DIM,MAX_DIM), 
-                                         espace_offset_(MAX_DIM),espace_dir_(espace_dir){}
-  
-  void EigenspaceParser::readEspace(std::string espace_type)
+  EigenspaceParser::EigenspaceParser(std::string espace_dir) : espace_set_(false), espace_dir_(espace_dir)
   {
-    if(espace_type=="Global")
+    setEspace("Global");
+  }
+  
+  bool EigenspaceParser::parseFiles(std::string espace_path,std::string espace_offset_path)
+  {
+    //reserve enough lines
+    espace_.resize(MAX_DIM,MAX_DIM);
+    espace_offset_.resize(MAX_DIM);
 
-    else if(espace_type=="")
+    std::ifstream espace_file;
+    std::ifstream espace_offset_file;
+    espace_file.open(espace_path.c_str());
+    espace_offset_file.open(espace_offset_path.c_str());
+    //can't find the files
+    if( !espace_file.is_open() )
+      {
+	ROS_ERROR("Couldn't open the file %s", espace_path.c_str());
+	return false;
+      }
+    if( !espace_offset_file.is_open() )
+      {
+	ROS_ERROR("Couldn't open the file %s", espace_offset_path.c_str());
+	return false;
+      }
 
-    else
-      ROS_WARN("Invalid Eigenspace type");
+    unsigned int dim=0;
+    std::string line;
+    while( !espace_file.eof() )
+      {
+	getline(espace_file, line);
+
+	//remove leading and trailing whitespaces
+	line = boost::algorithm::trim_copy(line);
+
+	//ignore empty line
+	if( line.size() == 0 )
+	  continue;
+
+	//ignore comments
+	if( line[0] == '#' )
+	  continue;
+         
+	std::vector<std::string> splitted_string;
+	boost::split(splitted_string, line, boost::is_any_of("\t "));
+	splitted_string.erase( std::remove_if(splitted_string.begin(), splitted_string.end(), boost::bind( &std::string::empty, _1 ) ), splitted_string.end() );
+     
+	for( unsigned int index_col = 0; index_col < splitted_string.size(); ++index_col )
+	  espace_(dim,index_col) = convertToDouble(splitted_string[index_col]);
+
+	dim+=1;
+      }
+    espace_file.close();
+    espace_.conservativeResize(dim,dim);
+
+    while( !espace_offset_file.eof() )
+      {
+	getline(espace_offset_file, line);
+
+	//remove leading and trailing whitespaces
+	line = boost::algorithm::trim_copy(line);
+
+	//ignore empty line
+	if( line.size() == 0 )
+	  continue;
+
+	//ignore comments
+	if( line[0] == '#' )
+	  continue;
+  
+	std::vector<std::string> splitted_string;
+	boost::split(splitted_string, line, boost::is_any_of("\t "));
+	splitted_string.erase( std::remove_if(splitted_string.begin(), splitted_string.end(), boost::bind( &std::string::empty, _1 ) ), splitted_string.end() );
+
+	for( unsigned int index_col = 0; index_col < splitted_string.size(); ++index_col )
+	  espace_offset_(index_col)= convertToDouble(splitted_string[index_col]);
+
+      }
+    espace_offset_file.close();
+    espace_offset_.conservativeResize(dim);
+
+    return true;
   }
 
-
-
+  void EigenspaceParser::setEspace(std::string espace_type)
+  {
+    espace_set_=false;
+    if(espace_type=="Global")
+      {
+	if(parseFiles(espace_dir_ + "GLOBALVECS.txt",espace_dir_ + "GLOBALMEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Tripod")
+      {
+	if(parseFiles(espace_dir_ + "G1VECS.txt",espace_dir_ + "G1MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Palmar_Pinch")
+      {
+	if(parseFiles(espace_dir_ + "G2VECS.txt",espace_dir_ + "G2MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Lateral")
+      {
+	if(parseFiles(espace_dir_ + "G3VECS.txt",espace_dir_ + "G3MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Writing_Tripod")
+      {
+	if(parseFiles(espace_dir_ + "G4VECS.txt",espace_dir_ + "G4MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Parallel_Extension")
+      {
+	if(parseFiles(espace_dir_ + "G5VECS.txt",espace_dir_ + "G5MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Adduction_Grip")
+      {
+	if(parseFiles(espace_dir_ + "G6VECS.txt",espace_dir_ + "G6MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Tip_Pinch")
+      {
+	if(parseFiles(espace_dir_ + "G7VECS.txt",espace_dir_ + "G7MEAN.txt" )) espace_set_=true;
+      }
+    else if(espace_type=="Lateral_Tripod")
+      {
+	if(parseFiles(espace_dir_ + "G8VECS.txt",espace_dir_ + "G8MEAN.txt" )) espace_set_=true;
+      }
+    else
+      ROS_WARN("Invalid Eigenspace type given - no Eigenspace is set");
+  }
 }//end namespace
 
 

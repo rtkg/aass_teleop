@@ -41,14 +41,11 @@ public:
 
   ~EigenspaceParser(){};
 
-  void readEspace(std::string espace_type);
+  void setEspace(std::string espace_type);
 
 private:
+  bool espace_set_;
 
-/**
-  * Flag indicating whether the eigenspace projection is active or not
-  */
-  bool espace_loaded_;
 /**
   * Matrix holding the basis vector of the currently used eigenspace
   */
@@ -58,8 +55,11 @@ private:
   */
   Eigen::VectorXd espace_offset_;
 
+
   std::string espace_dir_;
   
+  bool parseFiles(std::string espace_path,std::string espace_offset_path);
+
   inline double convertToDouble(std::string const& s)
   {
     std::istringstream i(s);

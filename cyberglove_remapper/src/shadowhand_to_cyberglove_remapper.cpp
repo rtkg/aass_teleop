@@ -44,7 +44,7 @@ namespace shadowhand_to_cyberglove_remapper
 const int ShadowhandToCybergloveRemapper::number_hand_joints_ = 20;
 
 ShadowhandToCybergloveRemapper::ShadowhandToCybergloveRemapper() :
-  n_tilde_("~"), eigenspace_parser_(new EigenspaceParser()), espace_projection_(false)
+  n_tilde_("~"), espace_projection_(false)
 {
     joints_names_.resize(number_hand_joints_);
     ShadowhandToCybergloveRemapper::initNames();
@@ -52,14 +52,19 @@ ShadowhandToCybergloveRemapper::ShadowhandToCybergloveRemapper() :
     std::string param;
     std::string abg_path;
     std::string gains_path;
+    std::string espace_dir;
     n_tilde_.searchParam("mapping_abg_path", param);
     n_tilde_.param(param, abg_path, std::string());
     n_tilde_.searchParam("mapping_gains_path", param);
     n_tilde_.param(param, gains_path, std::string());
+    n_tilde_.searchParam("projection_espace_dir", param);
+    n_tilde_.param(param, espace_dir, std::string());
 
     calibration_parser_ = new CalibrationParser(abg_path,gains_path);
+    eigenspace_parser_ = new EigenspaceParser(espace_dir);
 
     ROS_INFO("Mapping files loaded for the Cyberglove: %s, %s", abg_path.c_str(),gains_path.c_str());
+    ROS_INFO("Eigenspace projection directory set: %s", espace_dir.c_str());
 
     std::string prefix;
     std::string searched_param;

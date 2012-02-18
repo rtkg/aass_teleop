@@ -5,6 +5,7 @@
     <param name="sendupdate_prefix" type="string" value="/srh/" />
     <param name="mapping_abg_path" type="string" value="$(find cyberglove_remapper)/param/abg.txt" />
     <param name="mapping_gains_path" type="string" value="$(find cyberglove_remapper)/param/gains.txt" />
+    <param name="projection_espace_dir" type="string" value="$(find cyberglove_remapper)/param/" />
   </node>
 </launch>
 
