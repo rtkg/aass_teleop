@@ -19,9 +19,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
-#rosbuild_gensrv()
+rosbuild_gensrv()
 
 #Cybergrasp: uncomment this line if you want to use the cybergrasp
 #rosbuild_add_executable(cybergrasp_remapper src/shadowhand_to_cybergrasp_remapper.cpp src/shadowhand_to_cybergrasp_remapper_node.cpp src/calibration_parser.cpp)
-rosbuild_add_executable(aass_cyberglove_remapper src/shadowhand_to_cyberglove_remapper.cpp src/shadowhand_to_cyberglove_remapper_node.cpp src/calibration_parser.cpp)
+rosbuild_add_executable(aass_cyberglove_remapper src/shadowhand_to_cyberglove_remapper.cpp src/shadowhand_to_cyberglove_remapper_node.cpp src/calibration_parser.cpp src/eigenspace_parser.cpp)
 

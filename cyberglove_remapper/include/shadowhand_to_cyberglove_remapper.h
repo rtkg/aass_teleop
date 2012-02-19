@@ -18,14 +18,10 @@
 *
 * You should have received a copy of the GNU General Public License along
 * with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
- * @brief This program remaps the force information contained in
- * /joint_states coming from the hand to the /cybergraspforces topic
- * used to control the cybergrasp.
- *
  *
  */
-//Modified by Robert Krug 2012/02/15 - Implements the UHAM linear regression mapping
+//Modified by Robert Krug 2012/02/15 - Implements the UHAM linear regression mapping and the option
+//to project the generated joint angle vector onto a loaded eigenspace
 
 
 #ifndef   	SHADOWHAND_TO_CYBERGLOVE_REMAPPER_H_
@@ -36,6 +32,10 @@
 //messages
 #include <sensor_msgs/JointState.h>
 #include "calibration_parser.h"
+#include "eigenspace_parser.h"
+#include <Eigen/Core>
+#include <boost/thread/mutex.hpp>
+#include "../srv_gen/cpp/include/cyberglove_remapper/project_eigenspace.h"
 
 using namespace ros;
 
@@ -58,7 +58,7 @@ class ShadowhandToCybergloveRemapper
    * Number of joints in the hand
    */
   static const int number_hand_joints_;
-
+  
   /**
    * Init the vector containing the joints names
    *
@@ -70,7 +70,7 @@ class ShadowhandToCybergloveRemapper
    *
    * @param glove_values the raw sensor readings from the glove
    */
-  std::vector<double> getRemappedVector(std::vector<double> const & glove_values);
+  Eigen::VectorXd getRemappedVector(std::vector<double> const & glove_values);
 
   /**
    * Performs linear regression on the raw sensor readings from the glove
@@ -98,7 +98,13 @@ class ShadowhandToCybergloveRemapper
   ///publish to the shadowhand sendupdate topic
   Publisher shadowhand_pub_;
   ///the calibration parser containing the mapping matrix
+  ServiceServer project_eigenspace_service_;
   CalibrationParser* calibration_parser_;
+  EigenspaceParser* eigenspace_parser_;
+  void projectOnEspace(Eigen::VectorXd & hand_joints);
+ 
+  Eigen::MatrixXd proj_matrix_;
+  boost::mutex data_mutex_;
 
   /////////////////
   //  CALLBACKS  //
@@ -111,7 +117,8 @@ class ShadowhandToCybergloveRemapper
    * @param msg the joint_states message
    */
   void jointStatesCallback(const sensor_msgs::JointStateConstPtr& msg);
-   
+  bool formProjMatrix(cyberglove_remapper::project_eigenspace::Request  &req, cyberglove_remapper::project_eigenspace::Response &res);
+  
 }; // end class
 
 } //end namespace
