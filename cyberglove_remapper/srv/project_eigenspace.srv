@@ -1,0 +1,12 @@
+string type
+uint8 dim
+---
+bool success
+
+#type
+#==============
+#either one of: Global,Tripod,Palmar_Pinch,Lateral,Writing_Tripod,Parallel_Extension,Adduction_Grip,Tip_Pinch,Lateral_Tripod
+#
+#dim
+#==============
+#How many principle components are used for the projection (between 1 and the number of PCA components of the eigenspace)

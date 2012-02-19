@@ -17,11 +17,16 @@ r?
 *.rej
 
 # Build products
+build/
+bin/
+srv_gen/
 cyberglove_remapper/build/
 cyberglove_remapper/bin/
 cyberglove_remapper/srv_gen/
+cyberglove_remapper/src/cyberglove_remapper/
 aass_cyberglove/build/
 aass_cyberglove/bin/
+aass_cyberglove/srv_gen/
 *.a
 *.dll
 *.lib

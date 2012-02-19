@@ -37,6 +37,9 @@
 #include <sensor_msgs/JointState.h>
 #include "calibration_parser.h"
 #include "eigenspace_parser.h"
+#include <Eigen/Core>
+#include <boost/thread/mutex.hpp>
+#include "../srv_gen/cpp/include/cyberglove_remapper/project_eigenspace.h"
 
 using namespace ros;
 
@@ -71,7 +74,7 @@ class ShadowhandToCybergloveRemapper
    *
    * @param glove_values the raw sensor readings from the glove
    */
-  std::vector<double> getRemappedVector(std::vector<double> const & glove_values);
+  Eigen::VectorXd getRemappedVector(std::vector<double> const & glove_values);
 
   /**
    * Performs linear regression on the raw sensor readings from the glove
@@ -99,9 +102,13 @@ class ShadowhandToCybergloveRemapper
   ///publish to the shadowhand sendupdate topic
   Publisher shadowhand_pub_;
   ///the calibration parser containing the mapping matrix
+  ServiceServer project_eigenspace_service_;
   CalibrationParser* calibration_parser_;
   EigenspaceParser* eigenspace_parser_;
-  bool espace_projection_;
+  void projectOnEspace(Eigen::VectorXd & hand_joints);
+ 
+  Eigen::MatrixXd proj_matrix_;
+  boost::mutex data_mutex_;
 
   /////////////////
   //  CALLBACKS  //
@@ -114,7 +121,8 @@ class ShadowhandToCybergloveRemapper
    * @param msg the joint_states message
    */
   void jointStatesCallback(const sensor_msgs::JointStateConstPtr& msg);
-   
+  bool formProjMatrix(cyberglove_remapper::project_eigenspace::Request  &req, cyberglove_remapper::project_eigenspace::Response &res);
+  
 }; // end class
 
 } //end namespace

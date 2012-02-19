@@ -139,7 +139,7 @@ namespace shadowhand_to_cyberglove_remapper {
 	if(parseFiles(espace_dir_ + "G8VECS.txt",espace_dir_ + "G8MEAN.txt" )) espace_set_=true;
       }
     else
-      ROS_WARN("Invalid Eigenspace type given - no Eigenspace is set");
+      ROS_ERROR("Invalid Eigenspace type given - no Eigenspace is set. Type has to be one of: Global, Tripod, Palmar_Pinch, Lateral, Writing_Tripod, Parallel_Extension, Adduction_Grip, Tip_Pinch or Lateral_Tripod. ");
   }
 }//end namespace
 
