@@ -18,14 +18,10 @@
 *
 * You should have received a copy of the GNU General Public License along
 * with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
- * @brief This program remaps the force information contained in
- * /joint_states coming from the hand to the /cybergraspforces topic
- * used to control the cybergrasp.
- *
  *
  */
-//Modified by Robert Krug 2012/02/15 - Implements the UHAM linear regression mapping
+//Modified by Robert Krug 2012/02/15 - Implements the UHAM linear regression mapping and the option
+//to project the generated joint angle vector onto a loaded eigenspace
 
 
 #ifndef   	SHADOWHAND_TO_CYBERGLOVE_REMAPPER_H_

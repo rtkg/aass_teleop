@@ -18,13 +18,11 @@
 *
 * You should have received a copy of the GNU General Public License along
 * with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
- * @brief This program remapps the force information contained in
- * /joint_states coming from the hand to the /cybergraspforces topic
- * used to control the cybergrasp.
  *
  *
  */
+//Modified by Robert Krug 2012/02/15 - Implements the UHAM linear regression mapping and the option
+//to project the generated joint angle vector onto a loaded eigenspace
 
 //ROS include
 #include <ros/ros.h>
@@ -254,12 +252,17 @@ void ShadowhandToCybergloveRemapper::jointStatesCallback( const sensor_msgs::Joi
    eigenspace_parser_->setEspace(req.type);
    if(!eigenspace_parser_->espace_set_)
      return res.success;
-     
+
+   if((eigenspace_parser_->espace_.cols() != 18)||(eigenspace_parser_->espace_.rows() != 18))
+   {
+       ROS_ERROR("The loaded eigenspace matrix has to be 18x18 for the Shadow Hand");
+       return res.success;
+   }
    //since an eigenspace constitutes an orthonormal basis, a projection matrix for solving the
    //corresponding least squares problem can be formed by simply computing P=E^T*E where E holds in the
    //rows the first dim components of the eigenspace. A joint_angle vector y (with removed mean) is projected onto the subspace via P*y.
    proj_matrix_.topLeftCorner(18,18)=eigenspace_parser_->espace_.topLeftCorner(req.dim,18).transpose()*eigenspace_parser_->espace_.topLeftCorner(req.dim,18);
-   std::cout<<proj_matrix_.bottomRightCorner(5,5)<<std::endl;
+
    res.success=true;
    return res.success;
  }
