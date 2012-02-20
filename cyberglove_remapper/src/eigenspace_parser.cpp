@@ -68,7 +68,7 @@ namespace shadowhand_to_cyberglove_remapper {
 	dim+=1;
       }
     espace_file.close();
-    espace_.conservativeResize(dim,dim);
+    espace_.conservativeResize(dim,dim); //Trim to a square matrix 
 
     while( !espace_offset_file.eof() )
       {
@@ -102,6 +102,7 @@ namespace shadowhand_to_cyberglove_remapper {
   void EigenspaceParser::setEspace(std::string espace_type)
   {
     espace_set_=false;
+   
     if(espace_type=="Global")
       {
 	if(parseFiles(espace_dir_ + "GLOBALVECS.txt",espace_dir_ + "GLOBALMEAN.txt" )) espace_set_=true;

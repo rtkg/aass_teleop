@@ -1,1 +1,5 @@
-The aass_cyberglove node connects to a 18-sensor cyberglove by default. If a cyberglove with 22 sensors is used, the define statement #define ACTUAL_GLOVE_SIZE 18 in line 41 of the file /include/cyberglove/serial_glove.h needs to be commented out prior to compilation.
+The aass_cyberglove node connects to a 18-sensor cyberglove by default. If a cyberglove with 22
+sensors is used, the define statement #define ACTUAL_GLOVE_SIZE 18 in line 41 of the file
+/include/cyberglove/serial_glove.h needs to be commented out prior to compilation.
+
+Run the node with roslaunch aass_cyberglove aass_cyberglove.launch 

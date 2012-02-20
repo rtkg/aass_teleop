@@ -145,8 +145,8 @@ void ShadowhandToCybergloveRemapper::projectOnEspace(Eigen::VectorXd & hand_join
 {
   Eigen::VectorXd mean(number_hand_joints_); mean.setZero();
   mean.head(18)=eigenspace_parser_->espace_offset_;
-
-  hand_joints=proj_matrix_*(hand_joints-mean)+mean;
+  //hand_joints=mean;
+   hand_joints=proj_matrix_*(hand_joints-mean)+mean;
 }
 
   Eigen::VectorXd ShadowhandToCybergloveRemapper::getRemappedVector(std::vector<double> const & glove_values)
@@ -242,28 +242,37 @@ void ShadowhandToCybergloveRemapper::jointStatesCallback( const sensor_msgs::Joi
 
   bool ShadowhandToCybergloveRemapper::formProjMatrix(cyberglove_remapper::project_eigenspace::Request  &req, cyberglove_remapper::project_eigenspace::Response &res)
  {
+  data_mutex_.lock();
+
    res.success=false;
    if((req.dim < 1)|| (req.dim > 18))
      {
        ROS_ERROR("Invalid eigenspace dimension - the dimension has to be between 1 and 18 for the Shadow Hand");
+       data_mutex_.unlock();
        return res.success;
      }
 
    eigenspace_parser_->setEspace(req.type);
    if(!eigenspace_parser_->espace_set_)
-     return res.success;
+     {
+       data_mutex_.unlock();
+       return res.success;
+     }
 
    if((eigenspace_parser_->espace_.cols() != 18)||(eigenspace_parser_->espace_.rows() != 18))
    {
        ROS_ERROR("The loaded eigenspace matrix has to be 18x18 for the Shadow Hand");
+       data_mutex_.unlock();
        return res.success;
    }
    //since an eigenspace constitutes an orthonormal basis, a projection matrix for solving the
    //corresponding least squares problem can be formed by simply computing P=E^T*E where E holds in the
    //rows the first dim components of the eigenspace. A joint_angle vector y (with removed mean) is projected onto the subspace via P*y.
    proj_matrix_.topLeftCorner(18,18)=eigenspace_parser_->espace_.topLeftCorner(req.dim,18).transpose()*eigenspace_parser_->espace_.topLeftCorner(req.dim,18);
-
+  
    res.success=true;
+   data_mutex_.unlock();
+
    return res.success;
  }
 
