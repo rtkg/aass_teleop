@@ -4,5 +4,4 @@
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
   <depend stack="ros" />
-
 </stack>

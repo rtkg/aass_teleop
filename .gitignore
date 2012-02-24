@@ -27,6 +27,11 @@ cyberglove_remapper/src/cyberglove_remapper/
 aass_cyberglove/build/
 aass_cyberglove/bin/
 aass_cyberglove/srv_gen/
+wintracker/build/
+wintracker/bin/
+wintracker/lib/
+wintracker/srv_gen/
+wintracker/src/wintracker/
 *.a
 *.dll
 *.lib

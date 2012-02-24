@@ -13,6 +13,7 @@
   <depend package="sr_robot_msgs"/>
   <depend package="aass_cyberglove"/>
   <depend package="eigen"/>
+  <rosdep name="boost"/>
 </package>
 
 

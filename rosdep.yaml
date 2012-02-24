@@ -1,3 +1,6 @@
+libusb-dev:
+  ubuntu: libusb-dev
+
 obj-1.0:
   ubuntu: |
       if [ ! -f `rospack find libobj`/obj-1.0/build/lib/libobj.so ] ; then
