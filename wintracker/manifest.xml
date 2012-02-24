@@ -4,10 +4,10 @@
     driver for the VR-space WinTracker
 
     To run the wintracker_node without sodo privileges add a rule into /etc/udev/rules.d/80-wintracker.rules
-    $ sudo sh -c "echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04b4", ATTR{idProduct}=="64df", MODE="0666"' >>  /etc/udev/rules.d/80-wintracker.rules"
+    $ echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04b4", ATTR{idProduct}=="64df", MODE="0666"' | sudo tee /etc/udev/rules.d/80-wintracker.rules
     $ sudo restart udev 
 
-    The wintracker node is based on the code written by Mathias Broxvall.
+    The wintracker_node is a wrapper around the driver written by Mathias Broxvall.
   </description>
   <author>chrust</author>
   <license>BSD</license>

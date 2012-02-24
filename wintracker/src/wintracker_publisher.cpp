@@ -15,7 +15,6 @@ WintrackerPublisher::WintrackerPublisher() : nh_("~") {
   std::string full_topic = prefix + "/poseStamped";
   pubTest_ = nh_.advertise<geometry_msgs::PoseStamped>(full_topic, 2);
 
-  //
   full_topic = prefix + "/pose";
   pub_ = nh_.advertise<geometry_msgs::Pose>(full_topic, 2);
 
@@ -23,14 +22,17 @@ WintrackerPublisher::WintrackerPublisher() : nh_("~") {
 }
 
 
-void WintrackerPublisher::startWTracker() {
-  if(initialize_wtracker() != 0) {
+void WintrackerPublisher::startWTracker() 
+{
+  if(initialize_wtracker() != 0) 
+  {
     ROS_ERROR("Failed to initialize wtracker, exiting");
     exit(0);
   }
 }
 
-void WintrackerPublisher::shutdownWTracker() {
+void WintrackerPublisher::shutdownWTracker() 
+{
   shutdown_wtracker();
 }
 
@@ -45,13 +47,14 @@ bool WintrackerPublisher::spin() {
 				  ///visualisation in rvis when reference
 				  ///frame /fixed is set
 
-    printf("%+.3f %+.3f %+.3f\t\t",
-	   wtrackerSensors[0].x,wtrackerSensors[0].y,wtrackerSensors[0].z);
-    printf("%+.3f %+.3f %+.3f %+.3f\n",
-	   wtrackerSensors[0].qx,wtrackerSensors[0].qy,
-	   wtrackerSensors[0].qz,wtrackerSensors[0].qw);
+    // printf("%+.3f %+.3f %+.3f\t\t",
+    // 	   wtrackerSensors[0].x,wtrackerSensors[0].y,wtrackerSensors[0].z);
+    // printf("%+.3f %+.3f %+.3f %+.3f\n",
+    // 	   wtrackerSensors[0].qx,wtrackerSensors[0].qy,
+    // 	   wtrackerSensors[0].qz,wtrackerSensors[0].qw);
 
-    
+   
+    //Reads only the sensor on the first serial port - could be changed via publishing a pose array
     p.position.x = (float)wtrackerSensors[0].x;
     p.position.y = (float)wtrackerSensors[0].y;
     p.position.z = (float)wtrackerSensors[0].z;
