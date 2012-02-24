@@ -1,0 +1,8 @@
+<launch>
+   <node pkg="wintracker" name="wintracker_remapper" type="wintracker_remapper" output="screen">
+    <param name="wintracker_prefix" type="string" value="/wintracker" />
+    <param name="gazebo_prefix" type="string" value="/gazebo" />  
+    <param name="gazebo_model" type="string" value="sr_hand" />  
+  </node>
+</launch>
+
