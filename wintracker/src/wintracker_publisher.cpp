@@ -3,20 +3,24 @@
 #include <ros/ros.h>
 #include <stdlib.h>
 #include "geometry_msgs/PoseStamped.h"
-#include "geometry_msgs/Pose.h"
 
-WintrackerPublisher::WintrackerPublisher() : nh_("~") {
+WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed") {
   std::string prefix;
+  std::string frame_id;
   std::string searched_param;
-  // searches for parameter with name containing 'cyberglove_prefix' 
-  if (nh_.searchParam("wintracker_prefix", searched_param) ) 
-    nh_.getParam(searched_param, prefix);
 
-  std::string full_topic = prefix + "/poseStamped";
-  pubTest_ = nh_.advertise<geometry_msgs::PoseStamped>(full_topic, 2);
+  // searches for parameter with name containing 'wintracker_prefix' 
+  nh_.searchParam("wintracker_prefix", searched_param); 
+  nh_.getParam(searched_param, prefix);
 
-  full_topic = prefix + "/pose";
-  pub_ = nh_.advertise<geometry_msgs::Pose>(full_topic, 2);
+ if (nh_.searchParam("wintracker_frame_id", searched_param)) 
+   {
+    nh_.getParam(searched_param, frame_id);
+    frame_id_=frame_id;
+   }
+
+  std::string full_topic = prefix + "/pose";
+  pub_ = nh_.advertise<geometry_msgs::PoseStamped>(full_topic, 2);
 
   ros::Rate loop_rate(10);
 }
@@ -40,34 +44,21 @@ bool WintrackerPublisher::spin() {
   while (nh_.ok()) {            // While the node has not been shutdown
     usleep(1) ;
     geometry_msgs::PoseStamped ps;
-    geometry_msgs::Pose p;
     
     tick_wtracker();
-    std::string fr_id = "/fixed"; ///< This is hardcoded fix to allow
-				  ///visualisation in rvis when reference
-				  ///frame /fixed is set
 
-    // printf("%+.3f %+.3f %+.3f\t\t",
-    // 	   wtrackerSensors[0].x,wtrackerSensors[0].y,wtrackerSensors[0].z);
-    // printf("%+.3f %+.3f %+.3f %+.3f\n",
-    // 	   wtrackerSensors[0].qx,wtrackerSensors[0].qy,
-    // 	   wtrackerSensors[0].qz,wtrackerSensors[0].qw);
-
-   
     //Reads only the sensor on the first serial port - could be changed via publishing a pose array
-    p.position.x = (float)wtrackerSensors[0].x;
-    p.position.y = (float)wtrackerSensors[0].y;
-    p.position.z = (float)wtrackerSensors[0].z;
-    p.orientation.x = (float)wtrackerSensors[0].qx;
-    p.orientation.y = (float)wtrackerSensors[0].qy;
-    p.orientation.z = (float)wtrackerSensors[0].qz;
-    p.orientation.w = (float)wtrackerSensors[0].qw;
+    ps.pose.position.x = (float)wtrackerSensors[0].x;
+    ps.pose.position.y = (float)wtrackerSensors[0].y;
+    ps.pose.position.z = (float)wtrackerSensors[0].z;
+    ps.pose.orientation.x = (float)wtrackerSensors[0].qx;
+    ps.pose.orientation.y = (float)wtrackerSensors[0].qy;
+    ps.pose.orientation.z = (float)wtrackerSensors[0].qz;
+    ps.pose.orientation.w = (float)wtrackerSensors[0].qw;
 
-    ps.header.frame_id = fr_id;
-    ps.pose = p;
+    ps.header.frame_id = frame_id_;
 
-    pubTest_.publish(ps);
-    pub_.publish(p);
+    pub_.publish(ps);
     ros::spinOnce();
   }
   return true ;

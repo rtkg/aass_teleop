@@ -63,8 +63,8 @@ class WintrackerPublisher {
   
  private:
   ros::NodeHandle nh_;
-  ros::Publisher pubTest_;
   ros::Publisher pub_;
+  std::string frame_id_;
 };
 
 #endif

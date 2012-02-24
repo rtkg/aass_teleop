@@ -29,7 +29,7 @@ set(WTRACK_SOURCES
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
-#rosbuild_gensrv()
+rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
@@ -39,4 +39,11 @@ set(WTRACK_SOURCES
 #rosbuild_add_executable(wintracker_node src/wintracker_node.cpp src/WTracker.cpp)
 rosbuild_add_executable(wintracker_node ${WTRACK_SOURCES})
 target_link_libraries(wintracker_node usb)
+
+set(WTRACK_SOURCES 
+  src/wintracker_remapper_node.cpp
+  src/wintracker_remapper.cpp)
+
+rosbuild_add_executable(wintracker_remapper ${WTRACK_SOURCES})
+
 #target_link_libraries(wintracker_node WTRACKER_LIB)
