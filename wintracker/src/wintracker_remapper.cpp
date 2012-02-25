@@ -10,28 +10,30 @@
 //#include <string>
 
 #include "wintracker_remapper.h"
+#include <gazebo_msgs/GetModelState.h>
 #include <gazebo_msgs/ModelState.h>
 
-WinTrackerRemapper::WinTrackerRemapper() :  nh_private_("~")
+WinTrackerRemapper::WinTrackerRemapper() : nh_private_("~"), gazebo_model_("gplane")
 {
-  std::string wintracker_prefix;
-  std::string gazebo_prefix;
   std::string searched_param;
-
   if(!nh_private_.searchParam("gazebo_model", searched_param))
-     ROS_ERROR("No Gazebo model specified on the parameter server");
-  
-  nh_private_.getParam(searched_param, gazebo_model_);
+    ROS_WARN("No Gazebo model specified - using %s as remapping reference", gazebo_model_.c_str());
+  else
+    nh_private_.getParam(searched_param, gazebo_model_);
 
   // searches for parameter with name containing 'wintracker_prefix' 
   nh_private_.searchParam("wintracker_prefix", searched_param); 
-  nh_private_.getParam(searched_param, wintracker_prefix);
+  nh_private_.getParam(searched_param, wintracker_prefix_);
 
   nh_private_.searchParam("gazebo_prefix", searched_param); 
-  nh_private_.getParam(searched_param, gazebo_prefix);
+  nh_private_.getParam(searched_param, gazebo_prefix_);
 
-   wintracker_poses_sub_ = nh_.subscribe(wintracker_prefix + "/pose", 2, &WinTrackerRemapper::poseCallback, this);
-   model_state_pub_ = nh_.advertise<gazebo_msgs::ModelState> (gazebo_prefix + "/set_model_state", 2);
+
+   start_remap_srv_ = nh_.advertiseService(wintracker_prefix_ + "/start_remap",&WinTrackerRemapper::startRemap,this);
+   stop_remap_srv_ = nh_.advertiseService(wintracker_prefix_ + "/stop_remap",&WinTrackerRemapper::stopRemap,this);
+   gazebo_modstat_clt_ =  nh_.serviceClient<gazebo_msgs::GetModelState>(gazebo_prefix_ + "/get_model_state");
+  // 
+  // 
  
     // n_private_.searchParam("remapper_prefix", searched_param);
     // n_private_.param(searched_param, prefix, std::string());
@@ -41,7 +43,58 @@ WinTrackerRemapper::WinTrackerRemapper() :  nh_private_("~")
 
 }
 //---------------------------------------------------------------------------
-void WinTrackerRemapper::poseCallback(const geometry_msgs::PoseStamped & ps)
+// bool WinTrackerRemapper::getModelState(gazebo_msgs::ModelState::Request  &req, gazebo_msgs::ModelState::Response &res)
+// {
+
+// }
+//---------------------------------------------------------------------------
+bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+  data_mutex_.lock();
+  //get the initial pose of the model from Gazebo
+  gazebo_msgs::GetModelState gaz_ms; 
+  gaz_ms.request.model_name=gazebo_model_;
+  gaz_ms.request.relative_entity_name="world";
+  gazebo_modstat_clt_.call(gaz_ms);
+  if(!gaz_ms.response.success)
+    {
+      ROS_ERROR("Could not get the state of model %s from gazebo. Cannot start remapping.",gazebo_model_.c_str());
+      data_mutex_.unlock();
+      return false;
+    }
+
+  tf::Transform gazebo_tf, wintrack_tf;
+  
+  gazebo_tf.setOrigin(tf::Vector3(gaz_ms.response.pose.position.x,gaz_ms.response.pose.position.y,gaz_ms.response.pose.position.z));
+  gazebo_tf.setRotation(tf::Quaternion(gaz_ms.response.pose.orientation.x,gaz_ms.response.pose.orientation.y,gaz_ms.response.pose.orientation.z,gaz_ms.response.pose.orientation.w));
+
+  //need another service in the wintracker_publisher
+
+  remap_tf_.mult(gazebo_tf,wintrack_tf);//not sure about this
+
+
+
+  
+
+ model_state_pub_ = nh_.advertise<gazebo_msgs::ModelState> (gazebo_prefix_ + "/set_model_state", 2); 
+ wintracker_poses_sub_ = nh_.subscribe(wintracker_prefix_ + "/pose", 2, &WinTrackerRemapper::poseRemap, this);
+
+  data_mutex_.unlock();
+  return true;
+}
+//---------------------------------------------------------------------------
+bool WinTrackerRemapper::stopRemap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+  data_mutex_.lock();
+ 
+  wintracker_poses_sub_.shutdown();
+  model_state_pub_.shutdown();  
+
+  data_mutex_.unlock();
+  return true;
+}
+//---------------------------------------------------------------------------
+void WinTrackerRemapper::poseRemap(const geometry_msgs::PoseStamped & ps)
 {
   gazebo_msgs::ModelState ms;
   

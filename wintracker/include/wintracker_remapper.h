@@ -15,6 +15,8 @@
 #include <ros/ros.h>
 #include <boost/thread/mutex.hpp>
 #include <geometry_msgs/PoseStamped.h>
+#include <std_srvs/Empty.h>
+#include "tf/tf.h"
 
 //#include "../srv_gen/cpp/include/cyberglove_remapper/project_eigenspace.h"
 
@@ -33,18 +35,27 @@ class WinTrackerRemapper
 
  private:
 
+  
   ros::NodeHandle nh_, nh_private_;
   boost::mutex data_mutex_;
   ros::Subscriber wintracker_poses_sub_;
   ros::Publisher model_state_pub_;
+  ros::ServiceServer start_remap_srv_;
+  ros::ServiceServer stop_remap_srv_;
+  ros::ServiceClient gazebo_modstat_clt_;
   std::string gazebo_model_;
+  std::string wintracker_prefix_;
+  std::string gazebo_prefix_;
+  tf::Transform remap_tf_;
 
   /////////////////
   //  CALLBACKS  //
   /////////////////
 
-  void poseCallback(const geometry_msgs::PoseStamped & ps); 
-
+  void poseRemap(const geometry_msgs::PoseStamped & ps); 
+  bool startRemap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+  bool stopRemap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+  //  bool setTransformation(gazebo_msgs::ModelState::Request  &req, gazebo_msgs::ModelState::Response &res);
 
  /*  Eigen::MatrixXd proj_matrix_; */
  /*  boost::mutex data_mutex_; */

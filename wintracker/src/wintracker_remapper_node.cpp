@@ -25,6 +25,5 @@ int main(int argc, char** argv)
 
   WinTrackerRemapper remapper;
   ros::spin();
-
   return 0;
 }

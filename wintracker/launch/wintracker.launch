@@ -2,7 +2,7 @@
   <!-- shadowhand to cyberglove remapper -->
   <node pkg="wintracker" name="wintracker" type="wintracker_node" output="screen">
     <param name="wintracker_prefix" type="string" value="/wintracker" />
-    <param name="wintracker_frame_id" type="string" value="/fixed" />
+    <param name="wintracker_frame_id" type="string" value="/wintracker" />
   </node>
 </launch>
 
