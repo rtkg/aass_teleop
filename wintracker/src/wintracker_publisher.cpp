@@ -21,11 +21,31 @@ WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed") {
 
   std::string full_topic = prefix + "/pose";
   pub_ = nh_.advertise<geometry_msgs::PoseStamped>(full_topic, 2);
-
+  pose_srv_=nh_.advertiseService(prefix + "/get_pose",&WintrackerPublisher::getPose,this);
   ros::Rate loop_rate(10);
 }
+bool WintrackerPublisher::getPose(wintracker::GetPose::Request  &req, wintracker::GetPose::Response &res)
+{
+  res.success=false;
+ 
+  data_mutex_.lock();
+  tick_wtracker();
+  data_mutex_.unlock();   
 
+  //Reads only the sensor on the first serial port - could be changed via publishing a pose array
+  res.pose_stamped.pose.position.x = (float)wtrackerSensors[0].x;
+  res.pose_stamped.pose.position.y = (float)wtrackerSensors[0].y;
+  res.pose_stamped.pose.position.z = (float)wtrackerSensors[0].z;
+  res.pose_stamped.pose.orientation.x = (float)wtrackerSensors[0].qx;
+  res.pose_stamped.pose.orientation.y = (float)wtrackerSensors[0].qy;
+  res.pose_stamped.pose.orientation.z = (float)wtrackerSensors[0].qz;
+  res.pose_stamped.pose.orientation.w = (float)wtrackerSensors[0].qw;
 
+  res.pose_stamped.header.frame_id = frame_id_;
+
+  res.success=true;
+  return res.success;
+}
 void WintrackerPublisher::startWTracker() 
 {
   if(initialize_wtracker() != 0) 
@@ -45,7 +65,9 @@ bool WintrackerPublisher::spin() {
     usleep(1) ;
     geometry_msgs::PoseStamped ps;
     
+    data_mutex_.lock();
     tick_wtracker();
+    data_mutex_.unlock();   
 
     //Reads only the sensor on the first serial port - could be changed via publishing a pose array
     ps.pose.position.x = (float)wtrackerSensors[0].x;

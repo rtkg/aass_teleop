@@ -39,6 +39,9 @@
 #define WINTRACKER_PUBLISHER_H
 
 #include <ros/ros.h>
+#include <string.h>
+#include "../srv_gen/cpp/include/wintracker/GetPose.h"
+#include <boost/thread/mutex.hpp>
 
 /** \brief interface to wintracker 6d pose tracker
  *
@@ -64,7 +67,16 @@ class WintrackerPublisher {
  private:
   ros::NodeHandle nh_;
   ros::Publisher pub_;
+  ros::ServiceServer pose_srv_;
   std::string frame_id_;
+  boost::mutex data_mutex_;
+
+  /////////////////
+  //  CALLBACKS  //
+  /////////////////
+
+  bool getPose(wintracker::GetPose::Request  &req, wintracker::GetPose::Response &res);
+
 };
 
 #endif
