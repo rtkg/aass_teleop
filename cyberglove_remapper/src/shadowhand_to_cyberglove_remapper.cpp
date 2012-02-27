@@ -267,8 +267,8 @@ void ShadowhandToCybergloveRemapper::jointStatesCallback( const sensor_msgs::Joi
    }
    //since an eigenspace constitutes an orthonormal basis, a projection matrix for solving the
    //corresponding least squares problem can be formed by simply computing P=E^T*E where E holds in the
-   //rows the first dim components of the eigenspace. A joint_angle vector y (with removed mean) is projected onto the subspace via P*y.
-   proj_matrix_.topLeftCorner(18,18)=eigenspace_parser_->espace_.topLeftCorner(req.dim,18).transpose()*eigenspace_parser_->espace_.topLeftCorner(req.dim,18);
+   //columns the first dim components of the eigenspace. A joint_angle vector y (with removed mean) is projected onto the subspace via P*y.
+   proj_matrix_.topLeftCorner(18,18)=eigenspace_parser_->espace_.topLeftCorner(18,req.dim)*eigenspace_parser_->espace_.topLeftCorner(18,req.dim).transpose();
   
    res.success=true;
    data_mutex_.unlock();
