@@ -70,6 +70,7 @@ class WintrackerPublisher {
   ros::ServiceServer pose_srv_;
   std::string frame_id_;
   boost::mutex data_mutex_;
+  std::string hemisphere_;
 
   /////////////////
   //  CALLBACKS  //

@@ -4,10 +4,13 @@
 #include <stdlib.h>
 #include "geometry_msgs/PoseStamped.h"
 
-WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed") {
+WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed"), hemisphere_("Up"){
   std::string prefix;
   std::string frame_id;
   std::string searched_param;
+
+  if(nh_.searchParam("hemisphere_specification",searched_param))
+    nh_.getParam(searched_param, hemisphere_);
 
   // searches for parameter with name containing 'wintracker_prefix' 
   nh_.searchParam("wintracker_prefix", searched_param); 
@@ -48,11 +51,22 @@ bool WintrackerPublisher::getPose(wintracker::GetPose::Request  &req, wintracker
 }
 void WintrackerPublisher::startWTracker() 
 {
+
   if(initialize_wtracker() != 0) 
   {
     ROS_ERROR("Failed to initialize wtracker, exiting");
     exit(0);
   }
+
+  if(hemisphere_=="Up")
+    setUpHemisphere();
+  else if(hemisphere_=="Front")
+    setFrontHemisphere();
+  else
+    {
+      ROS_WARN("Hemisphere specification '%s' is invalid. It has to be either 'Up' or 'Front'. Setting hemisphere to 'Up'.",hemisphere_.c_str());
+      setUpHemisphere();
+    }
 }
 
 void WintrackerPublisher::shutdownWTracker() 

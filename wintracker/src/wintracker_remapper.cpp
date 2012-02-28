@@ -64,8 +64,7 @@ bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Emp
 
   data_mutex_.lock();
 
-  remap_tf_.mult(gazebo_tf,wintrack_tf);//not sure about this
-
+  remap_tf_=wintrack_tf.inverseTimes(gazebo_tf);//not sure about this
   //=============================================================================
   std::cout<<"original gazebo pose:  "<<gz_pose.response.pose.position.x<<" "<<gz_pose.response.pose.position.y<<" "<<gz_pose.response.pose.position.z<<"     "<<gz_pose.response.pose.orientation.x<<" "<<gz_pose.response.pose.orientation.y<<" "<<gz_pose.response.pose.orientation.z<<" "<<gz_pose.response.pose.orientation.w<<std::endl;
   tf::Vector3 rmp_v(remap_tf_*tf::Vector3(wt_pose.response.pose_stamped.pose.position.x,wt_pose.response.pose_stamped.pose.position.y,wt_pose.response.pose_stamped.pose.position.z));
