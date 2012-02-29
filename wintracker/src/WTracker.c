@@ -203,10 +203,10 @@ int initialize_wtracker() {
   char send_buf[reqLen];
 
   /* Enter non-continous mode */
-  send_buf[0] = 'S';
-  send_buf[1] = 'c';
-  send_buf[2] = '\0';
-  send_usb(WG_fs_usb, 3, send_buf);
+  /* send_buf[0] = 'S'; */
+  /* send_buf[1] = 'c'; */
+  /* send_buf[2] = '\0'; */
+  /* send_usb(WG_fs_usb, 3, send_buf); */
 
   /* Enable only first receiver */
   send_buf[0] = 'S';
@@ -277,15 +277,15 @@ void tick_wtracker() {
   */
 
   /* Enable only first receiver */
-  send_buf[0] = 'S';
-  send_buf[1] = 'A';
-  send_buf[2] = '1';
-  send_buf[3] = '0';
-  send_buf[4] = '0';
-  send_buf[5] = '\0';
-  send_usb(WG_fs_usb, 6, (char*) send_buf);
+  /* send_buf[0] = 'S'; */
+  /* send_buf[1] = 'A'; */
+  /* send_buf[2] = '1'; */
+  /* send_buf[3] = '0'; */
+  /* send_buf[4] = '0'; */
+  /* send_buf[5] = '\0'; */
+  /* send_usb(WG_fs_usb, 6, (char*) send_buf); */
 
-  usleep(10000);
+  /* usleep(5000); */
 
   /* Ask for sensor data */
   send_buf[0] = 'S';
@@ -294,7 +294,7 @@ void tick_wtracker() {
   send_usb(WG_fs_usb, 3, send_buf);
 
   for(i=0;i<32;i++) receive_buf[i]=0;
-  ret=usb_bulk_read(WG_fs_usb, endpoint_in, (char*)&receive_buf[0], 32, 100); /* wait up to 100ms for the data */
+  ret=usb_bulk_read(WG_fs_usb, endpoint_in, (char*)&receive_buf[0], 32, 50); /* wait up to 50ms for the data */
   /*printf("%d bytes: ",ret);
   for(i=0;i<32;i++) printf("%02x ",receive_buf[i]);
   printf("\n");*/

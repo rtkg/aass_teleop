@@ -17,6 +17,7 @@
   <depend package="geometry_msgs"/>
   <depend package="gazebo_msgs"/>
   <depend package="std_srvs"/>
+  <depend package="eigen"/>
   <depend package="tf"/>
   <depend package="roscpp"/>
   <rosdep name="libusb-dev"/>

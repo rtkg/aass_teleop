@@ -17,6 +17,7 @@
 #include <std_srvs/Empty.h>
 #include "tf/tf.h"
 #include <string>
+#include <list>
 
 /**
  * Maps the poses obtained from the wintracker driver node to gazebo model states

@@ -27,7 +27,6 @@ WinTrackerRemapper::WinTrackerRemapper() : nh_private_("~"), gazebo_model_("gpla
   nh_private_.searchParam("gazebo_prefix", searched_param); 
   nh_private_.getParam(searched_param, gazebo_prefix_);
 
-
    start_remap_srv_ = nh_.advertiseService(wintracker_prefix_ + "/start_remap",&WinTrackerRemapper::startRemap,this);
    stop_remap_srv_ = nh_.advertiseService(wintracker_prefix_ + "/stop_remap",&WinTrackerRemapper::stopRemap,this);
    gazebo_modstat_clt_ =  nh_.serviceClient<gazebo_msgs::GetModelState>(gazebo_prefix_ + "/get_model_state");
@@ -56,6 +55,7 @@ bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Emp
       return false;
     }
 
+  //set up the transformation from the wintracker to the Gazebo coordinate frame
   tf::Transform gazebo_tf, wintrack_tf;
   gazebo_tf.setOrigin(tf::Vector3(gz_pose.response.pose.position.x,gz_pose.response.pose.position.y,gz_pose.response.pose.position.z));
   gazebo_tf.setRotation(tf::Quaternion(gz_pose.response.pose.orientation.x,gz_pose.response.pose.orientation.y,gz_pose.response.pose.orientation.z,gz_pose.response.pose.orientation.w));
@@ -72,6 +72,8 @@ bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Emp
   std::cout<<"wt pose after mapping: "<<rmp_v.x()<<" "<<rmp_v.y()<<" "<<rmp_v.z()<<"     "<<rmp_q.x()<<" "<<rmp_q.y()<<" "<<rmp_q.z()<<" "<<rmp_q.w()<<std::endl;
  //=============================================================================
 
+
+  //Advertise & Subscribe
   model_state_pub_ = nh_.advertise<gazebo_msgs::ModelState> (gazebo_prefix_ + "/set_model_state", 2); 
   wintracker_poses_sub_ = nh_.subscribe(wintracker_prefix_ + "/pose", 2, &WinTrackerRemapper::remapPose, this);
 
