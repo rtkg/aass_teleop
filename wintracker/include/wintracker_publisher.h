@@ -46,92 +46,60 @@
 #include "geometry_msgs/PoseStamped.h"
 #include <deque>
 
-#define M_DQX 5
-#define M_DQY 5
-#define M_DQZ 5
-#define M_DQW 5
-
-
-//Coefficients for the Butterworth filter - sample rate: 80, cutoff frequency: 1,5
-#define BW_GAIN 1.465027228e+14   //  1.465027228e+14
-#define BW_0  -0.6051787989  //  -0.6051787989
-#define BW_1 6.3556200682  //   6.3556200682
-#define BW_2 -30.0441273930    //    -30.0441273930
-#define BW_3 84.1848641440   //   84.1848641440
-#define BW_4 -154.8445538800   //  -154.8445538800
-#define BW_5 195.3533794700 // 195.3533794700
-#define BW_6 -171.2005073300  //  -171.2005073300
-#define BW_7  102.9095719200 //  102.9095719200
-#define BW_8  -40.6070147940//  -40.6070147940
-#define BW_9  9.4979465911 // 9.4979465911
-
+#define JITTER_WINDOW 5
 
 /** \brief interface to wintracker 6d pose tracker
  *
  * Class is an interface to wintracker 6d pose. Publishes two topics:
- * Pose (pub_), and PoseStamped (pubTest_). PoseStamped has a
- * hardcoded header.frame_id = "/fixed" necessary for visualisation in
- * rviz. (such frame need to exist).
+ * Pose (pub_), and PoseStamped (pubTest_). The header_frame_id_ can be
+ * specified via a launch file
  *
  * Note: To run this publisher without sudo privilates you need to add
- * wintracker to udev. Details how to do that in manifest.
+ * a wintracker rule to udev. Details how to do that are given in the README.
  * 
  */
 class WintrackerPublisher {
   
  public:
   WintrackerPublisher();
-  virtual ~WintrackerPublisher();  
+  virtual ~WintrackerPublisher(){};  
   void startWTracker();
   void shutdownWTracker();
   void startStreaming();
   bool spin();
   
  private:
+
   ros::NodeHandle nh_;
   ros::Publisher pub_;
   ros::ServiceServer pose_srv_;
   std::string frame_id_;
   boost::mutex data_mutex_;
   std::string hemisphere_;
-  std::list<Eigen::Vector3f>* pos_filter_;
-  std::list<Eigen::Vector4f>* ori_filter_;
+  Eigen::Matrix<int,7,Eigen::Dynamic> sign_buffer_;
+  Eigen::Matrix<float,7,1> posture_ref_;
 
-  std::deque<Eigen::Vector4f>* ori_out_;
-  std::deque<Eigen::Vector4f>* ori_in_;
-
-
-/* Recurrence relation: of the Butterworth filter */
-/* y[n] = (  1 * x[n-10]) */
-/*      + ( 10 * x[n- 9]) */
-/*      + ( 45 * x[n- 8]) */
-/*      + (120 * x[n- 7]) */
-/*      + (210 * x[n- 6]) */
-/*      + (252 * x[n- 5]) */
-/*      + (210 * x[n- 4]) */
-/*      + (120 * x[n- 3]) */
-/*      + ( 45 * x[n- 2]) */
-/*      + ( 10 * x[n- 1]) */
-/*      + (  1 * x[n- 0]) */
-
-/*      + ( BW_0 * y[n-10]) */
-/*      + ( BW_1 * y[n- 9]) */
-/*      + ( BW_2 * y[n- 8]) */
-/*      + ( BW_3 * y[n- 7]) */
-/*      + ( BW_4* y[n- 6]) */
-/*      + ( BW_5 * y[n- 5]) */
-/*      + ( BW_6*y[n- 4]) */
-/*      + ( BW_7* y[n- 3]) */
-/*      + ( BW_8 * y[n- 2]) */
-/*      + ( BW_9 * y[n- 1]) */
-
+   /* Generates a new pose performing the sign-filtering  */
   geometry_msgs::PoseStamped getFilteredTick(); 
-  void adjustSigns(Eigen::Vector4f& ori);
+
+  /* The WinTracker often incorrectly flips signs of the sensor readings in case of
+   *  disturbances. The posture is frozen until all signs in the sign_buffer_ are the same
+   */
+  void filterSignJitter(Eigen::Vector3f& pos, Eigen::Vector4f& ori);
+
+
+  //Helper functions
+  Eigen::Vector3f getCurrPos();
+  Eigen::Vector4f getCurrOri();
+  bool signsEqual(Eigen::VectorXi const& vec);
+  int signof(float val);
+  Eigen::VectorXi signof(Eigen::VectorXf vec);
+
 
   /////////////////
   //  CALLBACKS  //
   /////////////////
-
+ 
   bool getPose(wintracker::GetPose::Request  &req, wintracker::GetPose::Response &res);
 
 };
