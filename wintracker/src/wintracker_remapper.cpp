@@ -32,7 +32,7 @@ WinTrackerRemapper::WinTrackerRemapper() : nh_private_("~"), gazebo_model_("gpla
    gazebo_modstat_clt_ =  nh_.serviceClient<gazebo_msgs::GetModelState>(gazebo_prefix_ + "/get_model_state");
    wt_get_pose_clt_ =  nh_.serviceClient<wintracker::GetPose>(wintracker_prefix_ + "/get_pose");
 
-  //Hardcoded pose offset between the sensor and the model 
+  //Hardcoded pose offset between the sensor and the model - would be good to read this from the parameter server
   btMatrix3x3 M_R_S(0,-1,0,0,0,-1,1,0,0);
   M_T_S_.setBasis(M_R_S);
   M_T_S_.setOrigin(tf::Vector3(0,0,0)); 
@@ -69,7 +69,7 @@ bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Emp
   W_T_S.setOrigin(tf::Vector3(wt_pose.response.pose_stamped.pose.position.x,wt_pose.response.pose_stamped.pose.position.y,wt_pose.response.pose_stamped.pose.position.z));
   W_T_S.setRotation(tf::Quaternion(wt_pose.response.pose_stamped.pose.orientation.x,wt_pose.response.pose_stamped.pose.orientation.y,wt_pose.response.pose_stamped.pose.orientation.z,wt_pose.response.pose_stamped.pose.orientation.w)); 
 
-  G_T_W_=G_T_M*M_T_S_*W_T_S.inverse(); //Transformation from the Wintracker to the Gazebo coordinate frame
+  G_T_W_=G_T_M*M_T_S_*W_T_S.inverse(); //Transformation from the WinTracker to the Gazebo coordinate frame
 
  //Advertise & Subscribe
   model_state_pub_ = nh_.advertise<gazebo_msgs::ModelState> (gazebo_prefix_ + "/set_model_state", 2); 
@@ -99,6 +99,7 @@ void WinTrackerRemapper::remapPose(const geometry_msgs::PoseStamped & ps)
   W_T_S.setOrigin(tf::Vector3(ps.pose.position.x,ps.pose.position.y,ps.pose.position.z));
   W_T_S.setRotation(tf::Quaternion(ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w));
 
+  //compute the pose of the model expressed in the Gazebo frame
   G_T_M=G_T_W_*W_T_S*M_T_S_.inverse(); 
 
   //get the remapped pose
@@ -106,7 +107,6 @@ void WinTrackerRemapper::remapPose(const geometry_msgs::PoseStamped & ps)
   tf::Quaternion rmp_q=G_T_M.getRotation();
 
   ms.model_name=gazebo_model_;
-
   ms.pose.position.x=rmp_v.x();
   ms.pose.position.y=rmp_v.y();
   ms.pose.position.z=rmp_v.z();
@@ -114,10 +114,9 @@ void WinTrackerRemapper::remapPose(const geometry_msgs::PoseStamped & ps)
   ms.pose.orientation.y=rmp_q.y();
   ms.pose.orientation.z=rmp_q.z();
   ms.pose.orientation.w=rmp_q.w();
-
   ms.reference_frame="world";
 
-   model_state_pub_.publish(ms);
+  model_state_pub_.publish(ms);
 }
 //---------------------------------------------------------------------------
 

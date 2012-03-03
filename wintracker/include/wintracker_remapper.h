@@ -20,7 +20,9 @@
 #include <list>
 
 /**
- * Maps the poses obtained from the wintracker driver node to gazebo model states;
+ * Maps the poses obtained from the wintracker driver node to gazebo model states; To use, hold the 
+ * sensor in an appropriate posture (i.e. hold your hand with the sensor attached according to the model)
+ * and call the /start_remap service
  * 
  * Todo: Right now, the relative transform between the sensor and the gazebo_model which is slaved
  * to sensor is hardcoded to fit the sensor on the back of the hand (+x_s towards fingers,-y_s

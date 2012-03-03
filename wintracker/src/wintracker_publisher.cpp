@@ -3,7 +3,6 @@
 #include <ros/ros.h>
 #include <stdlib.h>
 #include <cmath>
-#include "tf/tf.h"//Remove!!!
 //-------------------------------------------------------------------------------------
 WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed")
 {                                            
@@ -134,7 +133,6 @@ geometry_msgs::PoseStamped WintrackerPublisher::getFilteredTick()
   ps.pose.orientation.z = curr_ori(2);
   ps.pose.orientation.w = curr_ori(3);
   ps.header.frame_id = frame_id_;
-
 
   return ps;
 }
