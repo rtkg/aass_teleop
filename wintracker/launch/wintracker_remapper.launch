@@ -1,6 +1,4 @@
 <launch>
-   <include file="$(find wintracker)/launch/wintracker.launch" />
-
    <node pkg="wintracker" name="wintracker_remapper" type="wintracker_remapper" output="screen">
     <param name="wintracker_prefix" type="string" value="/wintracker" />
     <param name="gazebo_prefix" type="string" value="/gazebo" />  

@@ -1,5 +1,32 @@
 <launch>
+
+
+ <!-- Starts the Gazebo interface of the Shadow Hand with paused physics -->
+<include file="$(find cyberglove_remapper)/launch/gazebo_sr_hand.launch" />
+
+ <!-- Starts Shadow's hand interface -->
+<include file="$(find sr_hand)/launch/srh_motor.launch" />
+
+ <!-- Launch the cyberglove and the remapping node   -->
    <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
    <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
+-->
+
+ <!-- Launches the wintracker and the remapping node -->
+<include file="$(find wintracker)/launch/wintracker.launch" />
+<include file="$(find wintracker)/launch/wintracker_remapper.launch" />
+
+
+
+
+
+ <!-- 
+<node pkg="rviz" name="rviz_visualizer" type="rviz"/>
+ -->
+
+ <!-- 
+ <param name="arm_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/sr_arm_motor.urdf.xacro'" />
+ -->
+
 </launch>
 

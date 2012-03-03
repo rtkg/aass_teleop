@@ -20,7 +20,12 @@
 #include <list>
 
 /**
- * Maps the poses obtained from the wintracker driver node to gazebo model states
+ * Maps the poses obtained from the wintracker driver node to gazebo model states;
+ * 
+ * Todo: Right now, the relative transform between the sensor and the gazebo_model which is slaved
+ * to sensor is hardcoded to fit the sensor on the back of the hand (+x_s towards fingers,-y_s
+ * towards the palm) and the shadow_model (+z towards fingers, +x towards thumb). It would be nice
+ * to give this pose offset via the parameter server and launch file
  */
 class WinTrackerRemapper
 {
@@ -42,8 +47,10 @@ class WinTrackerRemapper
   std::string gazebo_model_;
   std::string wintracker_prefix_;
   std::string gazebo_prefix_;
-  tf::Transform remap_tf_;
-
+  // static transformation G^T_W from the wintracker to the Gazebo coordinate frame
+  tf::Transform G_T_W_;
+ //static transformation M^T_S from the sensor to the Gazebo model coordinate frame
+  tf::Transform M_T_S_;
   /////////////////
   //  CALLBACKS  //
   /////////////////

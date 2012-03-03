@@ -3,15 +3,15 @@
 #include <ros/ros.h>
 #include <stdlib.h>
 #include <cmath>
-
+#include "tf/tf.h"//Remove!!!
 //-------------------------------------------------------------------------------------
-WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed"), hemisphere_("Up")
+WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed")
 {                                            
   std::string prefix;
   std::string frame_id;
   std::string searched_param;
 
-  if(nh_.searchParam("hemisphere_specification",searched_param))
+  nh_.searchParam("hemisphere_specification",searched_param);
     nh_.getParam(searched_param, hemisphere_);
 
   // searches for parameter with name containing 'wintracker_prefix' 
@@ -27,7 +27,6 @@ WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed"), hemi
   std::string full_topic = prefix + "/pose";
   pub_ = nh_.advertise<geometry_msgs::PoseStamped>(full_topic, 2);
   pose_srv_=nh_.advertiseService(prefix + "/get_pose",&WintrackerPublisher::getPose,this);
-
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,10 +54,8 @@ void WintrackerPublisher::startWTracker()
   else if(hemisphere_=="Front")
     setFrontHemisphere();
   else
-    {
-      ROS_WARN("Hemisphere specification '%s' is invalid. It has to be either 'Up' or 'Front'. Setting hemisphere to 'Up'.",hemisphere_.c_str());
-      setUpHemisphere();
-    }
+      ROS_WARN("No Hemisphere specified - previous settings are used.");
+
 
   //Fill up the sign buffer and generate an initial reference posture
   data_mutex_.lock();
@@ -85,7 +82,7 @@ void WintrackerPublisher::startWTracker()
 	  posture_ref_.tail(4)=getCurrOri();
 	}
     }
-    
+
   data_mutex_.unlock();
 }
 //-------------------------------------------------------------------------------------
@@ -137,7 +134,8 @@ geometry_msgs::PoseStamped WintrackerPublisher::getFilteredTick()
   ps.pose.orientation.z = curr_ori(2);
   ps.pose.orientation.w = curr_ori(3);
   ps.header.frame_id = frame_id_;
-  
+
+
   return ps;
 }
 //-------------------------------------------------------------------------------------

@@ -3,7 +3,13 @@
   <node pkg="wintracker" name="wintracker" type="wintracker_node" output="screen">
     <param name="wintracker_prefix" type="string" value="/wintracker" />
     <param name="wintracker_frame_id" type="string" value="/wintracker" />
+
+<!-- Recivers have to be in the +x/-z sector when changing the hemisphere, otherwise
+    the sensor readings might be incorrect. Valid values are "Front" and "Up".
+
+
     <param name="hemisphere_specification" type="string" value="Up" />
+-->
   </node>
 </launch>
 

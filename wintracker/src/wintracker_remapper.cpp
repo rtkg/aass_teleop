@@ -31,6 +31,12 @@ WinTrackerRemapper::WinTrackerRemapper() : nh_private_("~"), gazebo_model_("gpla
    stop_remap_srv_ = nh_.advertiseService(wintracker_prefix_ + "/stop_remap",&WinTrackerRemapper::stopRemap,this);
    gazebo_modstat_clt_ =  nh_.serviceClient<gazebo_msgs::GetModelState>(gazebo_prefix_ + "/get_model_state");
    wt_get_pose_clt_ =  nh_.serviceClient<wintracker::GetPose>(wintracker_prefix_ + "/get_pose");
+
+  //Hardcoded pose offset between the sensor and the model 
+  btMatrix3x3 M_R_S(0,-1,0,0,0,-1,1,0,0);
+  M_T_S_.setBasis(M_R_S);
+  M_T_S_.setOrigin(tf::Vector3(0,0,0)); 
+
 }
 //---------------------------------------------------------------------------
 bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
@@ -54,26 +60,18 @@ bool WinTrackerRemapper::startRemap(std_srvs::Empty::Request &req, std_srvs::Emp
       ROS_ERROR("Could not get the pose from the WinTracker. Cannot start remapping.");
       return false;
     }
+ 
+  tf::Transform G_T_M;//initital pose of the model in the Gazebo frame
+  G_T_M.setOrigin(tf::Vector3(gz_pose.response.pose.position.x,gz_pose.response.pose.position.y,gz_pose.response.pose.position.z));
+  G_T_M.setRotation(tf::Quaternion(gz_pose.response.pose.orientation.x,gz_pose.response.pose.orientation.y,gz_pose.response.pose.orientation.z,gz_pose.response.pose.orientation.w));
 
-  //set up the transformation from the wintracker to the Gazebo coordinate frame
-  tf::Transform gazebo_tf, wintrack_tf;
-  gazebo_tf.setOrigin(tf::Vector3(gz_pose.response.pose.position.x,gz_pose.response.pose.position.y,gz_pose.response.pose.position.z));
-  gazebo_tf.setRotation(tf::Quaternion(gz_pose.response.pose.orientation.x,gz_pose.response.pose.orientation.y,gz_pose.response.pose.orientation.z,gz_pose.response.pose.orientation.w));
-  wintrack_tf.setOrigin(tf::Vector3(wt_pose.response.pose_stamped.pose.position.x,wt_pose.response.pose_stamped.pose.position.y,wt_pose.response.pose_stamped.pose.position.z));
-  wintrack_tf.setRotation(tf::Quaternion(wt_pose.response.pose_stamped.pose.orientation.x,wt_pose.response.pose_stamped.pose.orientation.y,wt_pose.response.pose_stamped.pose.orientation.z,wt_pose.response.pose_stamped.pose.orientation.w));
+  tf::Transform W_T_S; //initital pose of the sensor in the WinTracker frame
+  W_T_S.setOrigin(tf::Vector3(wt_pose.response.pose_stamped.pose.position.x,wt_pose.response.pose_stamped.pose.position.y,wt_pose.response.pose_stamped.pose.position.z));
+  W_T_S.setRotation(tf::Quaternion(wt_pose.response.pose_stamped.pose.orientation.x,wt_pose.response.pose_stamped.pose.orientation.y,wt_pose.response.pose_stamped.pose.orientation.z,wt_pose.response.pose_stamped.pose.orientation.w)); 
 
-  data_mutex_.lock();
+  G_T_W_=G_T_M*M_T_S_*W_T_S.inverse(); //Transformation from the Wintracker to the Gazebo coordinate frame
 
-  remap_tf_=wintrack_tf.inverseTimes(gazebo_tf);//not sure about this
-  //=============================================================================
-  std::cout<<"original gazebo pose:  "<<gz_pose.response.pose.position.x<<" "<<gz_pose.response.pose.position.y<<" "<<gz_pose.response.pose.position.z<<"     "<<gz_pose.response.pose.orientation.x<<" "<<gz_pose.response.pose.orientation.y<<" "<<gz_pose.response.pose.orientation.z<<" "<<gz_pose.response.pose.orientation.w<<std::endl;
-  tf::Vector3 rmp_v(remap_tf_*tf::Vector3(wt_pose.response.pose_stamped.pose.position.x,wt_pose.response.pose_stamped.pose.position.y,wt_pose.response.pose_stamped.pose.position.z));
-  tf::Quaternion rmp_q(remap_tf_*tf::Quaternion(wt_pose.response.pose_stamped.pose.orientation.x,wt_pose.response.pose_stamped.pose.orientation.y,wt_pose.response.pose_stamped.pose.orientation.z,wt_pose.response.pose_stamped.pose.orientation.w));
-  std::cout<<"wt pose after mapping: "<<rmp_v.x()<<" "<<rmp_v.y()<<" "<<rmp_v.z()<<"     "<<rmp_q.x()<<" "<<rmp_q.y()<<" "<<rmp_q.z()<<" "<<rmp_q.w()<<std::endl;
- //=============================================================================
-
-
-  //Advertise & Subscribe
+ //Advertise & Subscribe
   model_state_pub_ = nh_.advertise<gazebo_msgs::ModelState> (gazebo_prefix_ + "/set_model_state", 2); 
   wintracker_poses_sub_ = nh_.subscribe(wintracker_prefix_ + "/pose", 2, &WinTrackerRemapper::remapPose, this);
 
@@ -95,8 +93,17 @@ bool WinTrackerRemapper::stopRemap(std_srvs::Empty::Request &req, std_srvs::Empt
 void WinTrackerRemapper::remapPose(const geometry_msgs::PoseStamped & ps)
 {
   gazebo_msgs::ModelState ms;
-  tf::Vector3 rmp_v(remap_tf_*tf::Vector3(ps.pose.position.x,ps.pose.position.y,ps.pose.position.z));
-  tf::Quaternion rmp_q(remap_tf_*tf::Quaternion(ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w));
+  tf::Transform G_T_M; //pose of the model in the Gazebo coordinate frame
+  tf::Transform W_T_S; //pose of the sensor in the WinTracker frame
+ 
+  W_T_S.setOrigin(tf::Vector3(ps.pose.position.x,ps.pose.position.y,ps.pose.position.z));
+  W_T_S.setRotation(tf::Quaternion(ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w));
+
+  G_T_M=G_T_W_*W_T_S*M_T_S_.inverse(); 
+
+  //get the remapped pose
+  tf::Vector3 rmp_v= G_T_M.getOrigin();
+  tf::Quaternion rmp_q=G_T_M.getRotation();
 
   ms.model_name=gazebo_model_;
 
@@ -110,7 +117,7 @@ void WinTrackerRemapper::remapPose(const geometry_msgs::PoseStamped & ps)
 
   ms.reference_frame="world";
 
-  model_state_pub_.publish(ms);
+   model_state_pub_.publish(ms);
 }
 //---------------------------------------------------------------------------
 
