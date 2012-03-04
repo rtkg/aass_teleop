@@ -14,6 +14,8 @@
 int initialize_wtracker();
 void shutdown_wtracker();
 void tick_wtracker();
+void enable_cont_mode();
+void disable_cont_mode();
 
 #define N_SENSORS 3
 

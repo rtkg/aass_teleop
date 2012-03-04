@@ -41,6 +41,7 @@ bool WintrackerPublisher::getPose(wintracker::GetPose::Request  &req, wintracker
 //-------------------------------------------------------------------------------------
 void WintrackerPublisher::startWTracker() 
 {
+  data_mutex_.lock();
 
   if(initialize_wtracker() != 0) 
     {
@@ -55,10 +56,10 @@ void WintrackerPublisher::startWTracker()
   else
       ROS_WARN("No Hemisphere specified - previous settings are used.");
 
+  enable_cont_mode();//Enables the WinTracker to continously send data
+
 
   //Fill up the sign buffer and generate an initial reference posture
-  data_mutex_.lock();
-
   while((getCurrPos().norm() < 0.001) || (getCurrOri().norm() < 0.001) ) //make sure that the tracker is active
     tick_wtracker();
 

@@ -197,17 +197,33 @@ int main(int argc, char ** argv)
 struct usb_dev_handle * WG_fs_usb;
 WTrackerSensor wtrackerSensors[N_SENSORS];
 
+void enable_cont_mode()
+{
+  /* Enable continous output mode */
+  char send_buf[reqLen];
+  send_buf[0] = 'S';
+  send_buf[1] = 'C';
+  send_buf[2] = '\0';
+  send_usb(WG_fs_usb, 3, send_buf);
+  usleep(5000); //rkg - not sure if this is acutally needed
+}
+void disable_cont_mode()
+{
+  /* Disable continous output mode (this has to be done when system parameters are changed)*/
+  char send_buf[reqLen];
+  send_buf[0] = 'S';
+  send_buf[1] = 'c';
+  send_buf[2] = '\0';
+  send_usb(WG_fs_usb, 3, send_buf);
+  usleep(5000);//rkg - not sure if this is acutally needed
+}
+
+
 int initialize_wtracker() {
   WG_fs_usb = WG_fs_usb_open();
   
   char send_buf[reqLen];
-
-  /* Enter non-continous mode */
-  /* send_buf[0] = 'S'; */
-  /* send_buf[1] = 'c'; */
-  /* send_buf[2] = '\0'; */
-  /* send_usb(WG_fs_usb, 3, send_buf); */
-
+ 
   /* Enable only first receiver */
   send_buf[0] = 'S';
   send_buf[1] = 'A';
@@ -216,17 +232,15 @@ int initialize_wtracker() {
   send_buf[4] = '0';
   send_buf[5] = '\0';
   send_usb(WG_fs_usb, 6, (char*) send_buf);
+  usleep(5000);
 
   return 0;
 }
 
 void shutdown_wtracker() {
   /* Shutting down wtracker */
-  char send_buf[reqLen];
-  send_buf[0] = 'S';
-  send_buf[1] = 'c';
-  send_buf[2] = '\0';
-  send_usb(WG_fs_usb, 3, send_buf);
+
+  disable_cont_mode();
   printf("Shutting down wtracker\n");
   usb_release_interface(WG_fs_usb, interface);
   usb_close(WG_fs_usb);  
@@ -247,7 +261,7 @@ void setFrontHemisphere() {
   send_buf[2] = 'F';
   send_buf[3] = '\0';
   send_usb(WG_fs_usb, 4, (char*) send_buf);
-  usleep(2000);
+  usleep(5000);
 }
 void setUpHemisphere() {
   char send_buf[reqLen];
@@ -256,7 +270,7 @@ void setUpHemisphere() {
   send_buf[2] = 'U';
   send_buf[3] = '\0';
   send_usb(WG_fs_usb, 4, (char*) send_buf);
-  usleep(2000);
+  usleep(5000);
 }
 
 
@@ -266,17 +280,6 @@ void tick_wtracker() {
   //  int intA;
   int sensor;
   int ret,i;
-
-  /* Enable only first receiver */
-  /* send_buf[0] = 'S'; */
-  /* send_buf[1] = 'A'; */
-  /* send_buf[2] = '1'; */
-  /* send_buf[3] = '0'; */
-  /* send_buf[4] = '0'; */
-  /* send_buf[5] = '\0'; */
-  /* send_usb(WG_fs_usb, 6, (char*) send_buf); */
-
-  /* usleep(5000); */
 
   /* Ask for sensor data */
   send_buf[0] = 'S';
