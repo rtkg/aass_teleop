@@ -66,9 +66,9 @@ class WintrackerPublisher {
   
  public:
   WintrackerPublisher();
-  virtual ~WintrackerPublisher(){};  
+  virtual ~WintrackerPublisher();
+
   void startWTracker();
-  void shutdownWTracker();
   void startStreaming();
   bool spin();
   

@@ -46,6 +46,11 @@ class WinTrackerRemapper
   ros::ServiceServer stop_remap_srv_;
   ros::ServiceClient gazebo_modstat_clt_;
   ros::ServiceClient wt_get_pose_clt_;
+  ros::ServiceClient gazebo_unpause_clt_;
+
+   ros::ServiceClient gazebo_pause_clt_;
+  ros::ServiceClient gazebo_set_modstat_clt_;
+
   std::string gazebo_model_;
   std::string wintracker_prefix_;
   std::string gazebo_prefix_;

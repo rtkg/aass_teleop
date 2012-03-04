@@ -14,8 +14,5 @@ int main(int argc, char** argv) {
 
   wtracker_publisher.spin() ;
 
-  ROS_INFO("Shutting down the WinTracker node");
-   wtracker_publisher.shutdownWTracker() ;
-
   return 0 ;
 }

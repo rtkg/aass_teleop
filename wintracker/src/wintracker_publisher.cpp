@@ -27,7 +27,12 @@ WintrackerPublisher::WintrackerPublisher() : nh_("~"), frame_id_("/fixed")
   pub_ = nh_.advertise<geometry_msgs::PoseStamped>(full_topic, 2);
   pose_srv_=nh_.advertiseService(prefix + "/get_pose",&WintrackerPublisher::getPose,this);
 }
-
+//-------------------------------------------------------------------------------------
+WintrackerPublisher::~WintrackerPublisher()
+{
+ ROS_INFO("Shutting down the WinTracker node");
+ shutdown_wtracker();
+}
 //-------------------------------------------------------------------------------------
 bool WintrackerPublisher::getPose(wintracker::GetPose::Request  &req, wintracker::GetPose::Response &res)
 {
@@ -58,7 +63,6 @@ void WintrackerPublisher::startWTracker()
 
   enable_cont_mode();//Enables the WinTracker to continously send data
 
-
   //Fill up the sign buffer and generate an initial reference posture
   while((getCurrPos().norm() < 0.001) || (getCurrOri().norm() < 0.001) ) //make sure that the tracker is active
     tick_wtracker();
@@ -86,14 +90,10 @@ void WintrackerPublisher::startWTracker()
   data_mutex_.unlock();
 }
 //-------------------------------------------------------------------------------------
-void WintrackerPublisher::shutdownWTracker() 
-{
-  shutdown_wtracker();
-}
-//-------------------------------------------------------------------------------------
 bool WintrackerPublisher::spin() {
   while (ros::ok()) 
    {
+
     pub_.publish(getFilteredTick());
 
     ros::spinOnce();
