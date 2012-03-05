@@ -1,0 +1,17 @@
+<package>
+  <description brief="teleop_launch">
+
+    Convience package containing only the launch files for the teleoperation plus some modifications in the robot model
+
+  </description>
+  <author>Robert Krug</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/teleop_launch</url>
+  <depend package="wintracker"/>
+  <depend package="aass_cyberglove"/>
+  <depend package="cyberglove_remapper"/>
+  <depend package="sr_hand"/>
+</package>
+
+

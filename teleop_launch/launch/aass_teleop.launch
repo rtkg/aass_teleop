@@ -2,21 +2,21 @@
 
 
  <!-- Starts the Gazebo interface of the Shadow Hand with paused physics -->
-<include file="$(find cyberglove_remapper)/launch/gazebo_sr_hand.launch" />
+<include file="$(find teleop_launch)/launch/gazebo_sr_hand.launch" />
 
- <!-- Starts Shadow's hand interface -->
+ <!-- Starts Shadow's hand interface
 <include file="$(find sr_hand)/launch/srh_motor.launch" />
+ -->
 
- <!-- Launch the cyberglove and the remapping node   -->
+ <!-- Launch the cyberglove and the remapping node   
    <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
    <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
 -->
 
- <!-- Launches the wintracker and the remapping node -->
+ <!-- Launches the wintracker and the remapping node 
 <include file="$(find wintracker)/launch/wintracker.launch" />
 <include file="$(find wintracker)/launch/wintracker_remapper.launch" />
-
-
+-->
 
 
 

@@ -239,9 +239,9 @@ int initialize_wtracker() {
 
 void shutdown_wtracker() {
   /* Shutting down wtracker */
-
-  disable_cont_mode();
+  
   printf("Shutting down wtracker\n");
+  disable_cont_mode();
   usb_release_interface(WG_fs_usb, interface);
   usb_close(WG_fs_usb);  
 }

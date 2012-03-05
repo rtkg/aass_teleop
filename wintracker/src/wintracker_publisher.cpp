@@ -61,7 +61,7 @@ void WintrackerPublisher::startWTracker()
   else
       ROS_WARN("No Hemisphere specified - previous settings are used.");
 
-  enable_cont_mode();//Enables the WinTracker to continously send data
+  // enable_cont_mode();//Enables the WinTracker to continously send data
 
   //Fill up the sign buffer and generate an initial reference posture
   while((getCurrPos().norm() < 0.001) || (getCurrOri().norm() < 0.001) ) //make sure that the tracker is active
