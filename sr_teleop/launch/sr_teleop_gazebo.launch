@@ -1,0 +1,60 @@
+<launch>
+  <!-- start gazebo with an empty plane -->
+  <include file="$(find sr_hand)/launch/gazebo/empty_world.launch"/>
+
+  <!-- spawn the arm model -->
+
+  <group >
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/arm_and_hand_motor.urdf.xacro'" />
+  </group>
+  <node name="spawn_hand" pkg="gazebo" type="spawn_model" args="-urdf -param robot_description -z 0.01 -model shadow_model" respawn="false" output="screen" />
+
+  <!-- Joint Controllers for the arm -->
+  <rosparam file="$(find sr_hand)/model/hand_urdf/hand_controller_gazebo.yaml" command="load"/>
+  <rosparam file="$(find sr_hand)/model/arm_urdf/arm_controller.yaml" command="load"/>
+
+<!-- Cartesian pose controller for the arm -->
+<rosparam file="$(find sr_teleop)/robot/cart_controller.yaml" command="load"/>
+
+  <group >
+    <node name="spawn_gazebo_controllers"
+	  pkg="pr2_controller_manager" type="spawner" respawn="false" output="screen"
+	args="cartesian_pose_controller sa_sr_position_controller sa_ss_position_controller sa_es_position_controller sa_er_position_controller sh_ffj0_mixed_position_velocity_controller sh_ffj3_mixed_position_velocity_controller sh_ffj4_mixed_position_velocity_controller sh_mfj0_mixed_position_velocity_controller sh_mfj3_mixed_position_velocity_controller sh_mfj4_mixed_position_velocity_controller sh_rfj0_mixed_position_velocity_controller sh_rfj3_mixed_position_velocity_controller sh_rfj4_mixed_position_velocity_controller sh_lfj0_mixed_position_velocity_controller sh_lfj3_mixed_position_velocity_controller sh_lfj4_mixed_position_velocity_controller sh_lfj5_mixed_position_velocity_controller sh_thj1_mixed_position_velocity_controller sh_thj2_mixed_position_velocity_controller sh_thj3_mixed_position_velocity_controller sh_thj4_mixed_position_velocity_controller sh_thj5_mixed_position_velocity_controller sh_wrj1_mixed_position_velocity_controller sh_wrj2_mixed_position_velocity_controller" />
+  </group>
+
+
+ <!-- Starts Shadow's hand interface -->
+<include file="$(find sr_hand)/launch/sr_arm_motor.launch" />
+
+
+ <!-- Launch the cyberglove and the remapping node   
+   <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
+   <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
+-->
+
+ <!-- Launches the wintracker and the remapping node -->
+<include file="$(find wintracker)/launch/wintracker.launch" />
+
+
+
+<!--Launch the node for teleoperating the arm-->
+   <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen">
+      <rosparam file="$(find sr_teleop)/robot/config.yaml" command="load"/>
+       <remap from="pose" to="/wintracker/pose"/>
+       <remap from="get_pose" to="/wintracker/get_pose"/>
+       <remap from="command" to="/cartesian_pose_controller/command"/>
+       <remap from="switch_controller" to="/pr2_controller_manager/switch_controller"/>
+    </node>
+
+
+
+ <!-- 
+<node pkg="rviz" name="rviz_visualizer" type="rviz"/>
+ -->
+
+ <!-- 
+ <param name="arm_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/sr_arm_motor.urdf.xacro'" />
+ -->
+
+</launch>
+

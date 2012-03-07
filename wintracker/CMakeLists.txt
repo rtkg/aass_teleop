@@ -40,10 +40,4 @@ rosbuild_gensrv()
 rosbuild_add_executable(wintracker_node ${WTRACK_SOURCES})
 target_link_libraries(wintracker_node usb)
 
-set(WTRACK_SOURCES 
-  src/wintracker_remapper_node.cpp
-  src/wintracker_remapper.cpp)
-
-rosbuild_add_executable(wintracker_remapper ${WTRACK_SOURCES})
-
 #target_link_libraries(wintracker_node WTRACKER_LIB)

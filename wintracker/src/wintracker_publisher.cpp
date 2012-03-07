@@ -134,6 +134,7 @@ geometry_msgs::PoseStamped WintrackerPublisher::getFilteredTick()
   ps.pose.orientation.z = curr_ori(2);
   ps.pose.orientation.w = curr_ori(3);
   ps.header.frame_id = frame_id_;
+  ps.header.stamp=ros::Time::now();
 
   return ps;
 }

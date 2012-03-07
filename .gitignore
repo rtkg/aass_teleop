@@ -32,6 +32,11 @@ wintracker/bin/
 wintracker/lib/
 wintracker/srv_gen/
 wintracker/src/wintracker/
+sr_teleop/build/
+sr_teleop/bin/
+sr_teleop/lib/
+sr_teleop/srv_gen/
+sr_teleop/src/sr_teleop/
 *.a
 *.dll
 *.lib

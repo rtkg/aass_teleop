@@ -21,6 +21,9 @@
   <depend package="tf"/>
   <depend package="roscpp"/>
   <rosdep name="libusb-dev"/>
+  <export>
+    <cpp cflags="-I${prefix}/srv_gen/cpp/include" />
+  </export>
 </package>
 
 

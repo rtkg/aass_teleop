@@ -1,14 +1,15 @@
-wrist_cartesian_pose_controller:
+cartesian_pose_controller:
   type: robot_mechanism_controllers/CartesianPoseController
   root_name: shadowarm_base
   tip_name:  shadowarm_handsupport_motor
   fb_trans:
-    p: 20.0
+    p: 800.0
     i: 0.5
-    d: 0.0
+    d: 15.0
     i_clamp: 1.0
   fb_rot:
-    p: 0.5
-    i: 0.1
-    d: 0.0
+    p: 100
+    i: 0.5
+    d: 15
     i_clamp: 0.2
+

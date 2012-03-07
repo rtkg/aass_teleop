@@ -1,0 +1,10 @@
+#the default controllers will be switched with the CPC when entering teleoperation mode
+default_controllers: [sa_er_position_controller, sa_es_position_controller, sa_sr_position_controller, sa_ss_position_controller] 
+cartesian_pose_controller: cartesian_pose_controller
+T_T_S: [0.0,0.7071,0.7071,0.0,-0.7071,0.7071,1.0,0.0,0.0,0.0,0.0,0.2] #static pose offset between the sensor and the tracked link expressed in the coordinate frame of the tracked link
+base_frame_id: /sr_arm/position/shadowarm_base #the base frame has to conform to the root_name of the cartesian controller
+track_frame_id: /sr_arm/position/shadowarm_handsupport_motor #the track frame has to conform to the tip_name of the cartesian controller (the tracked link)
+     
+
+  
+

@@ -1,7 +1,7 @@
 <package>
-  <description brief="teleop_launch">
+  <description brief="sr_teleop">
 
-    Convience package containing only the launch files for the teleoperation plus some modifications in the robot model
+    Package for teleoperating the Shadow hand/arm with a WinTracker and a Cyberglove. Containins the launch files for the teleoperation plus some modifications in the robot model.
 
   </description>
   <author>Robert Krug</author>
@@ -12,6 +12,8 @@
   <depend package="aass_cyberglove"/>
   <depend package="cyberglove_remapper"/>
   <depend package="sr_hand"/>
+  <depend package="pr2_controller_manager"/>
+  <depend package="pr2_mechanism_msgs"/>
 </package>
 
 
