@@ -10,6 +10,7 @@
 #include <wintracker/GetPose.h>
 #include <pr2_mechanism_msgs/SwitchController.h>
 #include <boost/algorithm/string.hpp>
+#include "tf_conversions/tf_eigen.h"
 
 //---------------------------------------------------------------------------
 SrArmTeleop::SrArmTeleop() : nh_private_("~")
@@ -18,6 +19,15 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
   std::string sr_teleop_prefix;
   std::string cart_controller_prefix;
   std::string sensor_prefix;
+
+  //Read the configuration from the parameter server
+  nh_private_.searchParam("safety_zone_radius", searched_param);
+  nh_private_.getParam(searched_param, sz_rad_);
+  if(sz_rad_<=0)
+    {
+      sz_rad_=0.2;
+      ROS_WARN("Invalid safety zone radius specified. Setting the radius to %f",sz_rad_);
+    }
 
   nh_private_.searchParam("cartesian_pose_controller", searched_param);
   nh_private_.getParam(searched_param, cart_pose_controller_);
@@ -70,8 +80,6 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
    start_teleop_srv_ = nh_.advertiseService("start_teleop",&SrArmTeleop::startTeleop,this);
    stop_teleop_srv_ = nh_.advertiseService("stop_teleop",&SrArmTeleop::stopTeleop,this);
    pose_setpt_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("command",1);
-
-
    get_sensor_pose_clt_= nh_.serviceClient<wintracker::GetPose>("get_pose");
    switch_ctrl_clt_ = nh_.serviceClient<pr2_mechanism_msgs::SwitchController>("switch_controller");
 
@@ -98,8 +106,16 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   tf::Vector3 rmp_v= B_T_T.getOrigin();
   tf::Quaternion rmp_q=B_T_T.getRotation();
 
+
+  //check if the desired position is within the spherical safety zone and set it to a position on the boundary if not
+  Eigen::Vector3d offset = Eigen::Vector3d(rmp_v.x(),rmp_v.y(),rmp_v.z())-tl_init_pos_;
+  if(offset.norm() > sz_rad_)
+    {
+      ROS_WARN("Violating safety zone boundary - locking the position of the tracked link");
+      tf::VectorEigenToTF(tl_init_pos_+sz_rad_*offset/offset.norm(), rmp_v);
+   }
  
-  track_ps.header.frame_id="/"+getRelativeName(base_frame_id_);
+  track_ps.header.frame_id="/"+getRelativeName(base_frame_id_);//The controller needs the relative base frame id name to match it with the root_link
   track_ps.pose.position.x=rmp_v.x();
   track_ps.pose.position.y=rmp_v.y();
   track_ps.pose.position.z=rmp_v.z();
@@ -141,7 +157,7 @@ bool SrArmTeleop::startTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Re
 
   lock_.lock();
 
-  //get the current pose from the sensor expressed in the emitter frame
+  //get the current pose E_T_S from the sensor expressed in the emitter frame
   wintracker::GetPose s_ps;
   get_sensor_pose_clt_.call(s_ps);
   if(!s_ps.response.success)
@@ -167,12 +183,15 @@ bool SrArmTeleop::startTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Re
     return false;
   }
 
+  tf::VectorTFToEigen(B_T_T.getOrigin(),tl_init_pos_); //memorize the initial position of the tracked link - necessary for the safety zone maintainence
+
   B_T_E_=B_T_T*T_T_S_*E_T_S.inverse(); //setting the static transformation from the emitter to the base_link coordinate frame
 
   lock_.unlock();
 
   ROS_INFO("Switching control mode - Entering teleoperation mode ...");
 
+  //stop the default controllers and activate the cartesian pose controller
   pr2_mechanism_msgs::SwitchController switch_ctrl;
   switch_ctrl.request.start_controllers=std::vector<std::string>(1,cart_pose_controller_);
   switch_ctrl.request.stop_controllers=default_controllers_;
@@ -196,6 +215,7 @@ bool SrArmTeleop::stopTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Res
 {
    ROS_INFO("Switching control mode - Leaving teleoperation mode ...");
 
+  //stop the cartesian pose controller and activate the default controllers
   pr2_mechanism_msgs::SwitchController switch_ctrl;
   switch_ctrl.request.start_controllers= default_controllers_;
   switch_ctrl.request.stop_controllers=std::vector<std::string>(1,cart_pose_controller_);
