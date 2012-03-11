@@ -46,15 +46,10 @@
        <remap from="switch_controller" to="/pr2_controller_manager/switch_controller"/>
     </node>
 
-
-
  <!-- 
 <node pkg="rviz" name="rviz_visualizer" type="rviz"/>
  -->
 
- <!-- 
- <param name="arm_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/sr_arm_motor.urdf.xacro'" />
- -->
 
 </launch>
 
