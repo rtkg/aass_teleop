@@ -3,10 +3,10 @@ cartesian_pose_controller:
   root_name: shadowarm_base
   tip_name:  shadowarm_handsupport_motor
   fb_trans:
-    p: 800.0
-    i: 0.5
-    d: 5
-    i_clamp: 0.5
+    p: 1000.0
+    i: 5
+    d: 20
+    i_clamp: 0.1
   fb_rot:
     p: 50
     i: 0.5
