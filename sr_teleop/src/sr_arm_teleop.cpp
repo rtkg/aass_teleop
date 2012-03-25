@@ -79,6 +79,11 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
 
    start_teleop_srv_ = nh_.advertiseService("start_teleop",&SrArmTeleop::startTeleop,this);
    stop_teleop_srv_ = nh_.advertiseService("stop_teleop",&SrArmTeleop::stopTeleop,this);
+  set_home_srv_ = nh_.advertiseService("set_home",&SrArmTeleop::setHome,this);
+  go_home_srv_ = nh_.advertiseService("go_home",&SrArmTeleop::goHome,this);
+ hand_cfg_pub_=nh_.advertise<sr_robot_msgs::sendupdate>("hand_sendupdate",5);
+ arm_cfg_pub_=nh_.advertise<sr_robot_msgs::sendupdate>("arm_sendupdate",5);
+
    pose_setpt_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("command",1);
    get_sensor_pose_clt_= nh_.serviceClient<wintracker::GetPose>("get_pose");
    switch_ctrl_clt_ = nh_.serviceClient<pr2_mechanism_msgs::SwitchController>("switch_controller");
@@ -244,5 +249,40 @@ std::string SrArmTeleop::getRelativeName(std::string & name)
   boost::split(splitted_name, name, boost::is_any_of("/"));
 
   return splitted_name[splitted_name.size()-1];
+}
+//---------------------------------------------------------------------------
+bool SrArmTeleop::setHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+
+  //  ros::Subscriber arm_joints_sub_ = node_.subscribe(full_topic, 10, &ShadowhandToCybergloveRemapper::jointStatesCallback, this);
+
+
+  ros::Subscriber hand_joints_sub_;
+
+}
+//---------------------------------------------------------------------------
+bool SrArmTeleop::goHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+  if(arm_home_cfg_.sendupdate_list.isempty() || hand_home_cfg_.sendupdate_list.isempty())
+    {
+      ROS_ERROR("No home configuration set - cannot go home");
+      return false;
+    }
+
+  pr2_mechanism_msgs::SwitchController switch_ctrl;
+  switch_ctrl.request.start_controllers= default_controllers_;
+  switch_ctrl.request.stop_controllers=std::vector<std::string>(1,cart_pose_controller_);
+  switch_ctrl.request.strictness=2;//strict rule
+
+  switch_ctrl_clt_.call(switch_ctrl);
+
+  if(!switch_ctrl.response.ok)
+    {
+      ROS_ERROR("Could not switch controllers - cannot go home");
+      return false;
+    }
+    
+  hand_cfg_pub_.publish(hand_home_cfg_);//maybe latch?
+  arm_cfg_pub_.publish(arm_home_cfg_);
 }
 //---------------------------------------------------------------------------

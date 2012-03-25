@@ -23,7 +23,7 @@
 #include <tf/transform_listener.h>
 #include <Eigen/Core>
 #include "../srv_gen/cpp/include/sr_teleop/MovePose.h"
-
+#include <sr_robot_msgs/sendupdate.h>
 
 /**
  * @brief Maps the poses obtained from a 6D pose sensor to poses of a tracked link of the robot in a
@@ -79,6 +79,14 @@ ros::Publisher sensor_pose_pub_;
   ros::Publisher pose_setpt_pub_;
   ros::ServiceServer start_teleop_srv_;
   ros::ServiceServer stop_teleop_srv_;
+  ros::ServiceServer set_home_srv_;
+  ros::ServiceServer go_home_srv_;
+  ros::Publisher hand_cfg_pub_;
+  ros::Publisher arm_cfg_pub_;
+
+  sr_robot_msgs::sendupdate arm_home_cfg_;
+  sr_robot_msgs::sendupdate hand_home_cfg_;
+
 /**
  * @brief Holds the id of the desired base frame. This has to conform to the root_link of the cartesian pose controller
  */
@@ -131,6 +139,10 @@ ros::Publisher sensor_pose_pub_;
  * @brief Switches from the cartesian pose controller to the default controllers
  */ 
   bool stopTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+
+  bool setHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+  bool goHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+
 
 }; // end class
 
