@@ -23,6 +23,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "sr_teleop");
 
   SrArmTeleop sr_arm_teleop;
+
   ros::spin();
   return 0;
 }

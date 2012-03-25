@@ -13,6 +13,8 @@
 #ifndef sr_arm_teleop_h_
 #define sr_arm_teleop_h_
 
+#define PI 3.141592653589
+
 #include <ros/ros.h>
 #include <boost/thread/mutex.hpp>
 #include <geometry_msgs/PoseStamped.h>
@@ -24,6 +26,7 @@
 #include <Eigen/Core>
 #include "../srv_gen/cpp/include/sr_teleop/MovePose.h"
 #include <sr_robot_msgs/sendupdate.h>
+#include <sensor_msgs/JointState.h>
 
 /**
  * @brief Maps the poses obtained from a 6D pose sensor to poses of a tracked link of the robot in a
@@ -40,6 +43,8 @@ class SrArmTeleop
 
   SrArmTeleop();
   ~SrArmTeleop(){};
+
+  //bool startControllers();
 
  private:
 
@@ -81,11 +86,10 @@ ros::Publisher sensor_pose_pub_;
   ros::ServiceServer stop_teleop_srv_;
   ros::ServiceServer set_home_srv_;
   ros::ServiceServer go_home_srv_;
-  ros::Publisher hand_cfg_pub_;
-  ros::Publisher arm_cfg_pub_;
 
+  ros::Publisher arm_cfg_pub_;
+  ros::Subscriber arm_joints_sub_;
   sr_robot_msgs::sendupdate arm_home_cfg_;
-  sr_robot_msgs::sendupdate hand_home_cfg_;
 
 /**
  * @brief Holds the id of the desired base frame. This has to conform to the root_link of the cartesian pose controller
@@ -121,6 +125,7 @@ ros::Publisher sensor_pose_pub_;
  */ 
   std::string getRelativeName(std::string & name);
 
+
   /////////////////
   //  CALLBACKS  //
   /////////////////
@@ -142,7 +147,7 @@ ros::Publisher sensor_pose_pub_;
 
   bool setHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
   bool goHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
-
+  void armJointStatesCallback(const sensor_msgs::JointState::ConstPtr & js);
 
 }; // end class
 

@@ -11,6 +11,7 @@
 #include <pr2_mechanism_msgs/SwitchController.h>
 #include <boost/algorithm/string.hpp>
 #include "tf_conversions/tf_eigen.h"
+#include <sr_robot_msgs/joint.h>
 
 //---------------------------------------------------------------------------
 SrArmTeleop::SrArmTeleop() : nh_private_("~")
@@ -79,10 +80,9 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
 
    start_teleop_srv_ = nh_.advertiseService("start_teleop",&SrArmTeleop::startTeleop,this);
    stop_teleop_srv_ = nh_.advertiseService("stop_teleop",&SrArmTeleop::stopTeleop,this);
-  set_home_srv_ = nh_.advertiseService("set_home",&SrArmTeleop::setHome,this);
-  go_home_srv_ = nh_.advertiseService("go_home",&SrArmTeleop::goHome,this);
- hand_cfg_pub_=nh_.advertise<sr_robot_msgs::sendupdate>("hand_sendupdate",5);
- arm_cfg_pub_=nh_.advertise<sr_robot_msgs::sendupdate>("arm_sendupdate",5);
+   set_home_srv_ = nh_.advertiseService("set_home",&SrArmTeleop::setHome,this);
+   go_home_srv_ = nh_.advertiseService("go_home",&SrArmTeleop::goHome,this);
+   arm_cfg_pub_=nh_.advertise<sr_robot_msgs::sendupdate>("arm_sendupdate",1);
 
    pose_setpt_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("command",1);
    get_sensor_pose_clt_= nh_.serviceClient<wintracker::GetPose>("get_pose");
@@ -91,6 +91,20 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
 #ifdef DEBUG
    sensor_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("sensor_pose",1);
 #endif
+
+ //make sure the robot is controlled by the default controllers
+  // pr2_mechanism_msgs::SwitchController switch_ctrl;
+  // switch_ctrl.request.start_controllers= default_controllers_;
+  // switch_ctrl.request.stop_controllers=std::vector<std::string>(1,cart_pose_controller_);
+  // switch_ctrl.request.strictness=switch_ctrl.request.STRICT;//strict rule
+
+  // switch_ctrl_clt_.call(switch_ctrl);
+
+  // if(!switch_ctrl.response.ok)
+  //   {
+  //     ROS_ERROR("Could not switch controllers - cannot start arm teleoperation");
+  //     ROS_BREAK();
+  //   }
 
 }
 //-------------------------------------------------
@@ -200,7 +214,7 @@ bool SrArmTeleop::startTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Re
   pr2_mechanism_msgs::SwitchController switch_ctrl;
   switch_ctrl.request.start_controllers=std::vector<std::string>(1,cart_pose_controller_);
   switch_ctrl.request.stop_controllers=default_controllers_;
-  switch_ctrl.request.strictness=2;//strict rule
+  switch_ctrl.request.strictness=switch_ctrl.request.STRICT;//strict rule
 
   switch_ctrl_clt_.call(switch_ctrl);
 
@@ -224,7 +238,7 @@ bool SrArmTeleop::stopTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Res
   pr2_mechanism_msgs::SwitchController switch_ctrl;
   switch_ctrl.request.start_controllers= default_controllers_;
   switch_ctrl.request.stop_controllers=std::vector<std::string>(1,cart_pose_controller_);
-  switch_ctrl.request.strictness=2;//strict rule
+  switch_ctrl.request.strictness=switch_ctrl.request.STRICT;//strict rule
 
   switch_ctrl_clt_.call(switch_ctrl);
 
@@ -253,36 +267,80 @@ std::string SrArmTeleop::getRelativeName(std::string & name)
 //---------------------------------------------------------------------------
 bool SrArmTeleop::setHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
-
-  //  ros::Subscriber arm_joints_sub_ = node_.subscribe(full_topic, 10, &ShadowhandToCybergloveRemapper::jointStatesCallback, this);
-
-
-  ros::Subscriber hand_joints_sub_;
-
+  lock_.lock();
+  //Subscribes to the joint states publishers. The Home positions will be set in the callback
+  arm_joints_sub_ = nh_.subscribe("arm_joint_states", 1, &SrArmTeleop::armJointStatesCallback, this);
+   lock_.unlock();
+  return true;
 }
 //---------------------------------------------------------------------------
 bool SrArmTeleop::goHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
-  if(arm_home_cfg_.sendupdate_list.isempty() || hand_home_cfg_.sendupdate_list.isempty())
+  if(arm_home_cfg_.sendupdate_list.empty())
     {
       ROS_ERROR("No home configuration set - cannot go home");
       return false;
     }
 
+  for(int i=0;i<arm_home_cfg_.sendupdate_length;i++)
+    std::cout<<arm_home_cfg_.sendupdate_list[i].joint_name<<" "<<arm_home_cfg_.sendupdate_list[i].joint_target<<std::endl;
+
+  //Activate default controller and stop the CPC if active
   pr2_mechanism_msgs::SwitchController switch_ctrl;
   switch_ctrl.request.start_controllers= default_controllers_;
   switch_ctrl.request.stop_controllers=std::vector<std::string>(1,cart_pose_controller_);
-  switch_ctrl.request.strictness=2;//strict rule
+  switch_ctrl.request.strictness=switch_ctrl.request.STRICT;//strict rule
 
   switch_ctrl_clt_.call(switch_ctrl);
 
   if(!switch_ctrl.response.ok)
     {
-      ROS_ERROR("Could not switch controllers - cannot go home");
+      ROS_ERROR("Could not activate default controllers - cannot go home");
       return false;
     }
-    
-  hand_cfg_pub_.publish(hand_home_cfg_);//maybe latch?
+
+  ROS_INFO("Screw you guys, I'm going home!");
+
   arm_cfg_pub_.publish(arm_home_cfg_);
+
+  return true;
 }
+//---------------------------------------------------------------------------
+void SrArmTeleop::armJointStatesCallback(const sensor_msgs::JointState::ConstPtr & js)
+{
+  lock_.lock();
+
+    arm_home_cfg_.sendupdate_list.clear();
+    arm_home_cfg_.sendupdate_length=js->name.size();
+
+  sr_robot_msgs::joint j;
+  for(int i=0;i< arm_home_cfg_.sendupdate_length;i++)
+    {
+      j.joint_name=js->name[i];
+      j.joint_target=js->position[i]*180/PI;
+      arm_home_cfg_.sendupdate_list.push_back(j);
+    }
+ 
+  //Unsubscribe in order to stop the callbacks being getting called and overwriting the home position
+  arm_joints_sub_.shutdown();
+
+  lock_.unlock();
+
+  ROS_INFO("Arm home positions set");
+}
+//---------------------------------------------------------------------------
+// bool SrArmTeleop::startControllers()
+// {
+//   pr2_mechanism_msgs::SwitchController switch_ctrl;
+//   switch_ctrl.request.start_controllers= default_controllers_;
+//   switch_ctrl.request.stop_controllers=std::vector<std::string>(1,cart_pose_controller_);
+//   switch_ctrl.request.strictness=switch_ctrl.request.STRICT;//strict rule
+
+//   switch_ctrl_clt_.call(switch_ctrl);
+
+//   if(!switch_ctrl.response.ok)
+//       return false;
+
+//   return true;
+// }
 //---------------------------------------------------------------------------

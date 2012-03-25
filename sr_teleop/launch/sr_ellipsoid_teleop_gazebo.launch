@@ -44,6 +44,8 @@
        <remap from="pose" to="/wintracker/pose"/>
        <remap from="get_pose" to="/wintracker/get_pose"/>
        <remap from="command" to="/cartesian_pose_controller/command"/>
+       <remap from="arm_joint_states" to="/sr_arm/position/joint_states"/>
+       <remap from="arm_sendupdate" to="/sr_arm/sendupdate"/>
        <remap from="switch_controller" to="/pr2_controller_manager/switch_controller"/>
     </node>
 
