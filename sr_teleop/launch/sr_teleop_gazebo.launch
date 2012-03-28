@@ -23,8 +23,6 @@
   </group>
 
 
- <!-- Starts Shadow's hand interface -->
-<include file="$(find sr_hand)/launch/sr_arm_motor.launch" />
 
 
   Launch the cyberglove and the remapping node   

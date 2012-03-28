@@ -12,10 +12,11 @@
   <depend package="aass_cyberglove"/>
   <depend package="cyberglove_remapper"/>
   <depend package="sr_hand"/>
-  <depend package="eigen"/>
-  <depend package="pr2_controller_manager"/>
-  <depend package="pr2_mechanism_msgs"/>
   <depend package="tf"/>
+  <depend package="urdf" />
+  <depend package="sensor_msgs"/>
+  <depend package="tf_conversions"/>
+  <depend package="eigen"/>
   <depend package="tf_conversions"/>
   <depend package="sensor_msgs"/>
   <depend package="sr_robot_msgs"/>

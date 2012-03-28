@@ -1,12 +1,11 @@
+
 /**
  * @file   sr_arm_teleop.h
  * @author Robert Krug
  * @date   Tue, Mar 6, 2012
  *
  *@brief Publishes Cartesian Pose Controller commands to the arm controller. The pose commands are
- * recieved in form of geometry_msgs::StampedPose on the subscribed /pose topic. Right now, the
- * synchronization depends on a service provided by the wintracker node. It would be good to remove
- * this dependency to allow the use of different pose sensors.
+ * recieved in form of geometry_msgs::StampedPose on the subscribed /pose topic. 
  *
  */
 
@@ -24,9 +23,7 @@
 #include "tf/tf.h"
 #include <tf/transform_listener.h>
 #include <Eigen/Core>
-#include "../srv_gen/cpp/include/sr_teleop/MovePose.h"
-#include <sr_robot_msgs/sendupdate.h>
-#include <sensor_msgs/JointState.h>
+
 
 /**
  * @brief Maps the poses obtained from a 6D pose sensor to poses of a tracked link of the robot in a
@@ -35,6 +32,11 @@
  * service. Subsequently, the default controllers are switched with a
  * robot_mechanism_controllers/CartesianPoseController which tracks the remapped sensor poses.
  * 
+ *This is a stripped down version without the cartesian pose controller for the UPMC setup. Here,
+ *the node only publishes the remapped pose, intended to be used with 3DOF inverse
+ *kinematics. Furthermore, a sendupdate message is published containing the target value for the 4th
+ *arm joint (ElbowJRotate)
+ *
  */
 
 class SrArmTeleop
@@ -51,6 +53,11 @@ class SrArmTeleop
   ros::NodeHandle nh_, nh_private_;
   boost::mutex lock_;
 
+//HACK
+//Publishes sendupdates for the ElbowJRotate joint only - the other joints angles are supposed to be
+//computed via inverse kinematics of the remaining 3DOF arm chain
+ ros::Publisher EJR_pub_;
+//HACK end
 
 /**
  *@brief Static transformation from the emitter to the base coordinate frame
@@ -68,28 +75,31 @@ class SrArmTeleop
  * @brief Service to get the pose S^T_E of the sensor in the emitter frame - this is used in the synchronization step
  */
   ros::ServiceClient get_sensor_pose_clt_;
-/**
- * @brief Client calling the switch command from the pr2_controller_manager
- */
-  ros::ServiceClient switch_ctrl_clt_;
+
 /**
  * @brief If the debug flag is set, the node will publish B_T_S, the pose of the sensor in the base coordinate frame
  */
 #ifdef DEBUG
-ros::Publisher sensor_pose_pub_;
+ros::Publisher dbg_pose_pub_;
 #endif
 /**
  * @brief Publishes the remapped poses as setpoints for the cartesian pose controller
  */
   ros::Publisher pose_setpt_pub_;
+/**
+ * @brief Publishes the sensor pose expressed in the given base frame
+ */
+  ros::Publisher sensor_pose_pub_;
   ros::ServiceServer start_teleop_srv_;
   ros::ServiceServer stop_teleop_srv_;
-  ros::ServiceServer set_home_srv_;
-  ros::ServiceServer go_home_srv_;
 
-  ros::Publisher arm_cfg_pub_;
-  ros::Subscriber arm_joints_sub_;
-  sr_robot_msgs::sendupdate arm_home_cfg_;
+
+  //  ros::ServiceServer set_home_srv_;
+  // ros::ServiceServer go_home_srv_;
+
+  /* ros::Publisher arm_cfg_pub_; */
+  /* ros::Subscriber arm_joints_sub_; */
+  /* sr_robot_msgs::sendupdate arm_home_cfg_; */
 
 /**
  * @brief Holds the id of the desired base frame. This has to conform to the root_link of the cartesian pose controller
@@ -99,14 +109,6 @@ ros::Publisher sensor_pose_pub_;
  * @brief Specifies the tracked link. This has to conform to the tip_link of the cartesian pose controller
  */
   std::string track_frame_id_;
-/**
- * @brief Vector holding the names (according to the pr2_controller_manager) of the default controllers
- */
-  std::vector<std::string> default_controllers_;
-/**
- * @brief String holdin the name (according to the pr2_controller_manager) of the cartesian pose controller for the teleoperation mode
- */
-  std::string cart_pose_controller_;
 
   tf::TransformListener tf_list_;
 /**
@@ -145,9 +147,9 @@ ros::Publisher sensor_pose_pub_;
  */ 
   bool stopTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
-  bool setHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
-  bool goHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
-  void armJointStatesCallback(const sensor_msgs::JointState::ConstPtr & js);
+  /* bool setHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res); */
+  /* bool goHome(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res); */
+  /* void armJointStatesCallback(const sensor_msgs::JointState::ConstPtr & js); */
 
 }; // end class
 

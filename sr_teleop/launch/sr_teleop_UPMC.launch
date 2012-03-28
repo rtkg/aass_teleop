@@ -1,0 +1,20 @@
+<launch>
+
+  <!-- Launch the cyberglove and the remapping node  --> 
+   <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
+   <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
+
+   <!-- Launches the wintracker 6DOF pose tracker -->
+  <include file="$(find wintracker)/launch/wintracker.launch" />
+
+   <!--Launch the node for teleoperating the arm. The node publishes sendupdates for the ElbowJRotate joint (in case the pose is executed with a 3DOF inverse kinematics for the first 3 arm joints) and a 6DOF desired pose for the tracked link-->
+   <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen">
+      <rosparam file="$(find sr_teleop)/robot/config_UPMC.yaml" command="load"/>
+       <remap from="pose" to="/wintracker/pose"/>
+       <remap from="get_pose" to="/wintracker/get_pose"/>
+       <remap from="sensor_pose" to="/sr_teleop/track_pose"/>
+       <remap from="sendupdate" to="/sr_arm/sendupdate"/>
+    </node>
+
+</launch>
+
