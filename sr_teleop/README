@@ -1,4 +1,4 @@
-Node implementing the teleoperation of the Shadow arm via a 6DOF pose sensor and a Cartesian Pose Controller. Right now, the node depends on a service provided by the wintracker node. It would be nice to remove this dependency to make the teleoperation independent on the sensor. To use, move the arm in a appropriate inital posture, e.g., via:
+Node implementing the teleoperation of the Shadow arm via a 6DOF pose sensor and a Cartesian Pose Controller. To use, move the arm in a appropriate inital posture, e.g., via:
 
 rostopic pub /sr_arm/sendupdate sr_robot_msgs/sendupdate "{sendupdate_length: 4 ,sendupdate_list:
 [{joint_name: ElbowJRotate,joint_target: 45},{joint_name: ElbowJSwing,joint_target: 60},{joint_name:
