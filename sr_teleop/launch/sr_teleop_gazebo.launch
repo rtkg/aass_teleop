@@ -19,9 +19,10 @@
   <group >
     <node name="spawn_gazebo_controllers"
 	  pkg="pr2_controller_manager" type="spawner" respawn="false" output="screen"
-	args="cartesian_pose_controller sa_sr_position_controller sa_ss_position_controller sa_es_position_controller sa_er_position_controller sh_ffj0_mixed_position_velocity_controller sh_ffj3_mixed_position_velocity_controller sh_ffj4_mixed_position_velocity_controller sh_mfj0_mixed_position_velocity_controller sh_mfj3_mixed_position_velocity_controller sh_mfj4_mixed_position_velocity_controller sh_rfj0_mixed_position_velocity_controller sh_rfj3_mixed_position_velocity_controller sh_rfj4_mixed_position_velocity_controller sh_lfj0_mixed_position_velocity_controller sh_lfj3_mixed_position_velocity_controller sh_lfj4_mixed_position_velocity_controller sh_lfj5_mixed_position_velocity_controller sh_thj1_mixed_position_velocity_controller sh_thj2_mixed_position_velocity_controller sh_thj3_mixed_position_velocity_controller sh_thj4_mixed_position_velocity_controller sh_thj5_mixed_position_velocity_controller sh_wrj1_mixed_position_velocity_controller sh_wrj2_mixed_position_velocity_controller" />
-  </group>
-
+	args="  sa_ss_position_controller sa_es_position_controller sa_er_position_controller sh_ffj0_mixed_position_velocity_controller sh_ffj3_mixed_position_velocity_controller sh_ffj4_mixed_position_velocity_controller sh_mfj0_mixed_position_velocity_controller sh_mfj3_mixed_position_velocity_controller sh_mfj4_mixed_position_velocity_controller sh_rfj0_mixed_position_velocity_controller sh_rfj3_mixed_position_velocity_controller sh_rfj4_mixed_position_velocity_controller sh_lfj0_mixed_position_velocity_controller sh_lfj3_mixed_position_velocity_controller sh_lfj4_mixed_position_velocity_controller sh_lfj5_mixed_position_velocity_controller sh_thj1_mixed_position_velocity_controller sh_thj2_mixed_position_velocity_controller sh_thj3_mixed_position_velocity_controller sh_thj4_mixed_position_velocity_controller sh_thj5_mixed_position_velocity_controller sh_wrj1_mixed_position_velocity_controller sh_wrj2_mixed_position_velocity_controller sa_sr_position_controller" />
+ 
+ <node name="spawn_gazebo_cartesian_pose_controller" pkg="pr2_controller_manager" type="spawner" args="--stopped cartesian_pose_controller" />
+ </group>
 
  <!-- Starts Shadow's hand interface -->
 <include file="$(find sr_hand)/launch/sr_arm_motor.launch" />
@@ -38,7 +39,7 @@
 
 
 <!--Launch the node for teleoperating the arm-->
-   <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen">
+   <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen" ns="sr_arm_teleop">
       <rosparam file="$(find sr_teleop)/robot/config.yaml" command="load"/>
        <remap from="pose" to="/wintracker/pose"/>
        <remap from="get_pose" to="/wintracker/get_pose"/>
