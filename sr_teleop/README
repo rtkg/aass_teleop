@@ -6,3 +6,4 @@ ShoulderJRotate,joint_target: 0},{joint_name: ShoulderJSwing,joint_target: 30}]}
 
 and call the /start_teleop service. This service will synchronize the pose of the tracked link expressed in the given base frame and the pose of the sensor in the emitter frame. Parameters are specified in the /robot/config.yaml file. 
 
+

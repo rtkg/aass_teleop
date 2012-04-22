@@ -112,8 +112,8 @@
 
 
   <!-- Joint Controllers for the arm -->
-  <rosparam file="$(find sr_hand)/model/hand_urdf/hand_controller_gazebo.yaml" command="load"/>
-  <rosparam file="$(find sr_hand)/model/arm_urdf/arm_controller.yaml" command="load"/>
+  <rosparam file="$(find sr_teleop)/robot/hand_controller_gazebo_fast.yaml" command="load"/>
+  <rosparam file="$(find sr_teleop)/robot/arm_controller_gazebo_fast.yaml" command="load"/>
 
 <!-- Cartesian pose controller for the arm -->
 <rosparam file="$(find sr_teleop)/robot/cart_controller.yaml" command="load"/>
@@ -126,15 +126,11 @@
  <node name="spawn_gazebo_cartesian_pose_controller" pkg="pr2_controller_manager" type="spawner" args="--stopped cartesian_pose_controller" />
  </group>
 
-   <!-- Launch the cyberglove and the remapping node   -->
+  <!--  Launch the cyberglove -->
    <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
-   <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
 
-
- <!-- Launches the wintracker and the remapping node -->
-<include file="$(find wintracker)/launch/wintracker.launch" />
-
-
+ <!-- Launch the wintracker -->
+<include file="$(find wintracker)/launch/wintracker.launch" /> 
 
 <!--Launch the node for teleoperating the arm-->
    <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen" ns="sr_arm_teleop">
