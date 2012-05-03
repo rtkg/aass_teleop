@@ -57,8 +57,6 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
       ROS_WARN("Invalid safety zone radius specified. Setting the radius to %f",sz_rad_);
     }
 
-
-
   //Initialize B_T_W_, the transform from the emitter to the base coordinate frame
   B_T_E_.setIdentity();
 
@@ -67,7 +65,7 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
    pose_setpt_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("track_pose",1);
 
    get_sensor_pose_clt_= nh_.serviceClient<wintracker::GetPose>("get_pose");
-   sensor_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("sensor_pose",1);
+   //sensor_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("sensor_pose",1);
 
 
 #ifdef DEBUG
@@ -114,8 +112,7 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   //publish the pose of the tracked link in the base frame
   pose_setpt_pub_.publish(track_ps);
 
-
-  //publish the pose of the sensor in the base frame 
+#ifdef DEBUG //Publish the sensor pose in the fully resolved base frame id for debugging
   tf::Transform B_T_S=B_T_E_*E_T_S; 
   rmp_v= B_T_S.getOrigin();
   rmp_q=B_T_S.getRotation();
@@ -131,11 +128,6 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   sensor_ps.pose.orientation.w=rmp_q.w();
   sensor_ps.header.seq=ps.header.seq;
   sensor_ps.header.stamp=ps.header.stamp;
-
-  sensor_pose_pub_.publish(sensor_ps);
-
-#ifdef DEBUG //Publish the sensor pose in the fully resolved base frame id for debugging
-  sensor_ps.header.frame_id=base_frame_id_;
   dbg_pose_pub_.publish(sensor_ps);
 #endif
 
@@ -144,38 +136,38 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   //shadowhand_lowerarm frame. This is an approximation if the actual shadowarm_lowerarm link is not
   //in a pose corresponding to the one commanded by this node
 
-  tf::StampedTransform L_T_B; //pose of the base expressed in the loweram frame
-  lock_.lock();
+  // tf::StampedTransform L_T_B; //pose of the base expressed in the loweram frame
+  // lock_.lock();
 
-  try
-    {
-      //shamelessly hardcoded transform between the reference link and the base
-      tf_list_.lookupTransform("/sr_arm/position/shadowarm_lowerarm",base_frame_id_,ros::Time(0) ,L_T_B);
-    }
-  catch (tf::TransformException ex)
-    {
-    ROS_ERROR("%s",ex.what());
-    }
+  // try
+  //   {
+  //     //shamelessly hardcoded transform between the reference link and the base
+  //     tf_list_.lookupTransform("/sr_arm/position/shadowarm_lowerarm",base_frame_id_,ros::Time(0) ,L_T_B);
+  //   }
+  // catch (tf::TransformException ex)
+  //   {
+  //   ROS_ERROR("%s",ex.what());
+  //   }
   
-  lock_.unlock();
+  // lock_.unlock();
 
-  tf::Transform L_T_T=L_T_B*B_T_T; //pose of the tracked link expressed in the shadowhand_lowerarm frame
-  double pitch,roll;
+  // tf::Transform L_T_T=L_T_B*B_T_T; //pose of the tracked link expressed in the shadowhand_lowerarm frame
+  // double pitch,roll;
 
   
-  sr_robot_msgs::joint j;
-  j.joint_name="ElbowJRotate";
-  L_T_T.getBasis().getEulerYPR(j.joint_target,pitch, roll);//get the  ElbowJRoate joint angle (around the z-axis of the shadowhand_lowerarm frame)
+  // sr_robot_msgs::joint j;
+  // j.joint_name="ElbowJRotate";
+  // L_T_T.getBasis().getEulerYPR(j.joint_target,pitch, roll);//get the  ElbowJRoate joint angle (around the z-axis of the shadowhand_lowerarm frame)
 
-  std::cout<<"yaw: "<<j.joint_target*(-180)/PI<<" pitch: "<<pitch*(-180)/PI<<" roll: "<<roll*(-180)/PI<<std::endl;
+  // std::cout<<"yaw: "<<j.joint_target*(-180)/PI<<" pitch: "<<pitch*(-180)/PI<<" roll: "<<roll*(-180)/PI<<std::endl;
 
-  j.joint_target=j.joint_target*(-180)/PI;
+  // j.joint_target=j.joint_target*(-180)/PI;
 
-  sr_robot_msgs::sendupdate msg;
-  msg.sendupdate_list.push_back(j);
-  msg.sendupdate_length=1;
+  // sr_robot_msgs::sendupdate msg;
+  // msg.sendupdate_list.push_back(j);
+  // msg.sendupdate_length=1;
   
-  EJR_pub_.publish(msg);
+  // EJR_pub_.publish(msg);
   //HACK END
 
 }
@@ -223,7 +215,7 @@ bool SrArmTeleop::startTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Re
 
   //HACK 
     //subscribe to the sendupdate publisher which will only publish joint angles for ElbowJRotate
-   EJR_pub_ = nh_.advertise<sr_robot_msgs::sendupdate>("sendupdate",1);
+    //EJR_pub_ = nh_.advertise<sr_robot_msgs::sendupdate>("sendupdate",1);
  //HACK END
   return true;
 }
@@ -236,7 +228,7 @@ bool SrArmTeleop::stopTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Res
 
  //HACK 
    //shutdown to sendupdate publisher 
-   EJR_pub_.shutdown();
+   //   EJR_pub_.shutdown();
  //HACK END
   
   return true;
