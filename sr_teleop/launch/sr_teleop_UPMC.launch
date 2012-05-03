@@ -2,7 +2,6 @@
 
   <!-- Launch the cyberglove and the remapping node  --> 
    <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
-   <include file="$(find cyberglove_remapper)/launch/aass_sr_remapper.launch" />
 
    <!-- Launches the wintracker 6DOF pose tracker -->
   <include file="$(find wintracker)/launch/wintracker.launch" />
