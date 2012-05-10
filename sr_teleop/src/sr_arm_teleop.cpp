@@ -65,8 +65,8 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
    pose_setpt_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("track_pose",1);
 
    get_sensor_pose_clt_= nh_.serviceClient<wintracker::GetPose>("get_pose");
-   //sensor_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("sensor_pose",1);
-
+   sensor_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("sensor_pose",1);
+   stp_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("stp_pose",1);
 
 #ifdef DEBUG
   dbg_pose_pub_=nh_.advertise<geometry_msgs::PoseStamped>("debug_pose",1);
@@ -112,7 +112,7 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   //publish the pose of the tracked link in the base frame
   pose_setpt_pub_.publish(track_ps);
 
-#ifdef DEBUG //Publish the sensor pose in the fully resolved base frame id for debugging
+//#ifdef DEBUG //Publish the sensor pose in the fully resolved base frame id for debugging
   tf::Transform B_T_S=B_T_E_*E_T_S; 
   rmp_v= B_T_S.getOrigin();
   rmp_q=B_T_S.getRotation();
@@ -128,8 +128,31 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   sensor_ps.pose.orientation.w=rmp_q.w();
   sensor_ps.header.seq=ps.header.seq;
   sensor_ps.header.stamp=ps.header.stamp;
-  dbg_pose_pub_.publish(sensor_ps);
-#endif
+  sensor_pose_pub_.publish(sensor_ps);
+//#endif
+
+
+ tf::Transform hack;
+ hack.setOrigin(tf::Vector3(0,0,0));
+  hack.setBasis(btMatrix3x3(0,-1,0,0,0,-1,1,0,0).inverse());
+
+  tf::Transform stp = B_T_S*hack;
+  geometry_msgs::PoseStamped stp_ps;
+  rmp_v= stp.getOrigin();
+  rmp_q=stp.getRotation();
+
+  stp_ps.header.frame_id="/"+getRelativeName(base_frame_id_);
+  stp_ps.pose.position.x=rmp_v.x();
+  stp_ps.pose.position.y=rmp_v.y();
+  stp_ps.pose.position.z=rmp_v.z();
+  stp_ps.pose.orientation.x=rmp_q.x();
+  stp_ps.pose.orientation.y=rmp_q.y();
+  stp_ps.pose.orientation.z=rmp_q.z();
+  stp_ps.pose.orientation.w=rmp_q.w();
+  stp_ps.header.seq=ps.header.seq;
+  stp_ps.header.stamp=ps.header.stamp;
+
+stp_pose_pub_.publish(stp_ps);
 
   //HACK
   // Extract the ElbowJRotate joint angle from the rotation of the tracked link around the

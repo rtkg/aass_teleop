@@ -1,6 +1,6 @@
 <launch>
 
-  <!-- Launch the cyberglove and the remapping node  --> 
+  <!-- Launch the cyberglove  --> 
    <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
 
    <!-- Launches the wintracker 6DOF pose tracker -->
@@ -11,8 +11,7 @@
       <rosparam file="$(find sr_teleop)/robot/config_UPMC.yaml" command="load"/>
        <remap from="pose" to="/wintracker/pose"/>
        <remap from="get_pose" to="/wintracker/get_pose"/>
-       <remap from="sensor_pose" to="/sr_teleop/track_pose"/>
-       <remap from="sendupdate" to="/sr_arm/sendupdate"/>
+       <remap from="stp_pose" to="/move_arm_6D/pose"/>
     </node>
 
 </launch>

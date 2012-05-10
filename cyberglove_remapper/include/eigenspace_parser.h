@@ -30,7 +30,7 @@ class EigenspaceParser{
 public:
 
    friend class ShadowhandToCybergloveRemapper;
-
+ friend class ShadowhandToCybergloveRemapperIc;
   /**
   * Default constructor, using the default path. Initialize an
   * eigenspace matrix for the global eigenspace

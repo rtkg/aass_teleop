@@ -45,7 +45,7 @@ class CalibrationParser {
 public:
 
    friend class ShadowhandToCybergloveRemapper;
-
+friend class ShadowhandToCybergloveRemapperIc;
   /**
   * Default constructor, using the default path. Initialize a
   * calibration matrix loaded from the default calibration file.

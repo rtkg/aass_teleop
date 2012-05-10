@@ -109,35 +109,35 @@ namespace shadowhand_to_cyberglove_remapper {
       }
     else if(espace_type=="Tripod")
       {
-	if(parseFiles(espace_dir_ + "G1VECS.txt",espace_dir_ + "G1MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G1VECS_N.txt",espace_dir_ + "G1MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Palmar_Pinch")
       {
-	if(parseFiles(espace_dir_ + "G2VECS.txt",espace_dir_ + "G2MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G2VECS_N.txt",espace_dir_ + "G2MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Lateral")
       {
-	if(parseFiles(espace_dir_ + "G3VECS.txt",espace_dir_ + "G3MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G3VECS_N.txt",espace_dir_ + "G3MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Writing_Tripod")
       {
-	if(parseFiles(espace_dir_ + "G4VECS.txt",espace_dir_ + "G4MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G4VECS_N.txt",espace_dir_ + "G4MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Parallel_Extension")
       {
-	if(parseFiles(espace_dir_ + "G5VECS.txt",espace_dir_ + "G5MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G5VECS_N.txt",espace_dir_ + "G5MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Adduction_Grip")
       {
-	if(parseFiles(espace_dir_ + "G6VECS.txt",espace_dir_ + "G6MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G6VECS_N.txt",espace_dir_ + "G6MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Tip_Pinch")
       {
-	if(parseFiles(espace_dir_ + "G7VECS.txt",espace_dir_ + "G7MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G7VECS_N.txt",espace_dir_ + "G7MEAN_N.txt" )) espace_set_=true;
       }
     else if(espace_type=="Lateral_Tripod")
       {
-	if(parseFiles(espace_dir_ + "G8VECS.txt",espace_dir_ + "G8MEAN.txt" )) espace_set_=true;
+	if(parseFiles(espace_dir_ + "G8VECS_N.txt",espace_dir_ + "G8MEAN_N.txt" )) espace_set_=true;
       }
     else
       ROS_ERROR("Invalid Eigenspace type given - no Eigenspace is set. Type has to be one of: Global, Tripod, Palmar_Pinch, Lateral, Writing_Tripod, Parallel_Extension, Adduction_Grip, Tip_Pinch or Lateral_Tripod. ");

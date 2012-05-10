@@ -6,7 +6,7 @@
   <node pkg="aass_cyberglove" name="aass_cyberglove" type="aass_cyberglove" output="screen">
     <param name="cyberglove_prefix" type="string" value="/aass_cyberglove" />
     <param name="publish_frequency" type="double" value="20" />
-    <param name="path_to_glove" type="string" value="/dev/ttyUSB1" />
+    <param name="path_to_glove" type="string" value="/dev/ttyUSB0" />
   </node>
 
   <!-- Robot state publisher

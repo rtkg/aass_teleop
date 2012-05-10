@@ -86,6 +86,8 @@ ros::Publisher dbg_pose_pub_;
  * @brief Publishes the remapped poses as setpoints for the cartesian pose controller
  */
   ros::Publisher pose_setpt_pub_;
+  ros::Publisher sensor_pose_pub_;
+  ros::Publisher stp_pose_pub_;
 /**
  * @brief Publishes the sensor pose expressed in the given base frame
  */
