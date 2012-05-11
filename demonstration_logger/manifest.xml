@@ -1,0 +1,18 @@
+<package>
+  <description brief="demonstration_logger">
+
+     demonstration_logger
+
+  </description>
+  <author>Robert Krug</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/demonstration_logger</url>
+  <depend package="roscpp"/>
+  <depend package="sr_robot_msgs"/>
+  <depend package="std_srvs"/>
+  <depend package="eigen"/>
+  <rosdep name="boost"/>
+</package>
+
+

@@ -27,6 +27,10 @@ sr_cyberglove_remapper/src/sr_cyberglove_remapper/
 aass_cyberglove/build/
 aass_cyberglove/bin/
 aass_cyberglove/srv_gen/
+demonstration_logger/build/
+demonstration_logger/bin/
+demonstration_logger/src/demonstration_logger/
+demonstration_logger/srv_gen/
 wintracker/build/
 wintracker/bin/
 wintracker/lib/

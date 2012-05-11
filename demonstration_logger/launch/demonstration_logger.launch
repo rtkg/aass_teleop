@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="demonstration_logger" name="demonstration_logger" type="demonstration_logger" output="screen" ns="demonstration_logger" >
+    <param name="log_dir" type="string" value="$(find demonstration_logger)/data/" />
+    <remap from="hand_joint_states" to="/srh/sendupdate"/> 
+  </node>
+</launch>
+
