@@ -54,8 +54,9 @@ int main(int argc, char** argv)
 
   while( ros::ok() )
     {
-      if(cyberglove_pub->isPublishing()){
+     if(cyberglove_pub->isPublishing()){
         cyberglove_pub->publish();
+
         }
       //else{ros::spinOnce();sleep(100);}
     }

@@ -1,0 +1,12 @@
+<launch>
+  <!-- shadowhand to cyberglove remapper -->
+  <node pkg="sr_cyberglove_remapper" name="sr_cyberglove_remapper" type="sr_cyberglove_remapper" output="screen">
+    <param name="cyberglove_prefix" type="string" value="/aass_cyberglove/" />
+    <param name="remapper_prefix" type="string" value="/aass_cyberglove_remapper_ic/" />
+    <rosparam file="$(find sr_cyberglove_remapper)/config/position_control_topics_config.yaml" command="load"/>
+    <param name="mapping_abg_path" type="string" value="$(find sr_cyberglove_remapper)/param/abg.txt" />
+    <param name="mapping_gains_path" type="string" value="$(find sr_cyberglove_remapper)/param/gains.txt" />
+    <param name="projection_espace_dir" type="string" value="$(find sr_cyberglove_remapper)/param/" />
+  </node>
+</launch>
+
