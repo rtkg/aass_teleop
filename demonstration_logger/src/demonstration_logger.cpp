@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/bind.hpp>
+#include "rosbag/bag.h"
 
 //-------------------------------------------------------------------
 DemonstrationLogger::DemonstrationLogger() : nh_private_("~")
@@ -56,29 +57,25 @@ void DemonstrationLogger::initHandJoints()
 //-------------------------------------------------------------------
 void DemonstrationLogger::handJointStatesCallback(sr_robot_msgs::sendupdate::ConstPtr msg,std::string log_name)
 {
- Eigen::VectorXd joint_states;
- sendupdateToEigen(msg,joint_states);
- std::cout<<log_name<<std::endl;
+  Eigen::VectorXd joint_states;
+  sendupdateToEigen(msg,joint_states);
 
- std::ofstream file;
- file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
+  std::ofstream file;
+  file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
 
- file<<ros::WallTime::now().toNSec()<<" ";
- for(unsigned int i=0; i<joint_states.size();i++)
-   file<<joint_states(i)<<" ";
+  file<<ros::WallTime::now().toNSec()<<" ";
+  for(unsigned int i=0; i<joint_states.size();i++)
+    file<<joint_states(i)<<" ";
 
- file<<"\n";
- file.close();
+  file<<"\n";
+  file.close();
 
+  
 
-
-
-
-
-
-
-
-
+  rosbag::Bag bag;
+  bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
+  bag.write("sendupdate", ros::Time::now(), *msg);
+  bag.close();
 
 }
  //-------------------------------------------------------------------
@@ -100,10 +97,24 @@ bool DemonstrationLogger::startLog(demonstration_logger::StartLog::Request &req,
    }
    file.close();
 
+   file.open((log_dir_+req.log_name+".bag").c_str(), std::ios::binary | std::ios::in);
+   if(file.is_open())
+   {
+     file.close();
+     ROS_ERROR("File %s already exists. Choose a different name.",(log_dir_+req.log_name+".bag").c_str());
+     return false;
+   }
+   file.close();
+
    lock_.lock();
    hand_jointstates_sub_ = nh_.subscribe<sr_robot_msgs::sendupdate>("hand_joint_states", 1, boost::bind(&DemonstrationLogger::handJointStatesCallback,this,_1, req.log_name));
 
    lock_.unlock();
+
+   //create an empty .bag file which will be appended in the handJointStates callback
+  rosbag::Bag bag;
+  bag.open((log_dir_+req.log_name+".bag").c_str(), rosbag::bagmode::Write);
+  bag.close();
 
    ROS_INFO("Started logging to %s",(log_dir_+req.log_name+".txt").c_str());
    return true;

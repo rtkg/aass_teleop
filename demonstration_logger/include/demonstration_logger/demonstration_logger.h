@@ -33,10 +33,7 @@ class DemonstrationLogger : public boost::noncopyable
   ros::NodeHandle nh_, nh_private_;
   XmlRpc::XmlRpcValue hand_joints_;
   
-  
-
   boost::mutex lock_;
-
   std::string log_dir_;
   ros::ServiceServer start_log_srv_;
   ros::ServiceServer stop_log_srv_;
