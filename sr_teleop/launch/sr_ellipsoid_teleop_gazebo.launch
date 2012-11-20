@@ -1,23 +1,22 @@
 <launch>
 
   <!-- Set the robot descriptions-->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/arm_and_hand_motor_ellipsoid.urdf.xacro'" />
-  <param name="hand_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/shadowhand_motor_ellipsoid.urdf.xacro'" />
-  <param name="arm_description" command="$(find xacro)/xacro.py '$(find sr_hand)/model/robots/xacro/sr_arm_motor.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find sr_description)/robots/arm_and_hand_motor_ellipsoid.urdf.xacro'" />
+  <param name="hand_description" command="$(find xacro)/xacro.py '$(find sr_description)/robots/shadowhand_motor_ellipsoid.urdf.xacro'" />
+  <param name="arm_description" command="$(find xacro)/xacro.py '$(find sr_description)/robots/sr_arm_motor.urdf.xacro'" />
 
   <!-- start gazebo with an empty plane -->
-  <include file="$(find sr_hand)/launch/gazebo/empty_world.launch"/>
+  <include file="$(find sr_hand)/launch/gazebo/loaders/empty_world.launch"/>
 
   <!-- spawn the arm and hand model -->
   <node name="spawn_hand" pkg="gazebo" type="spawn_model" args="-urdf -param robot_description -z 0.01 -model shadow_model" respawn="false" output="screen" />
 
 
- <!-- Starts Shadow's interface -->
+  <!-- Starts Shadow's interface -->
 
   <!--  SHADOWARM    -->
 
-  <node pkg="sr_hand" name="shadowarm"
-	type="shadowarm_virtual" >
+  <node pkg="sr_hand" name="shadowarm" type="shadowarm_virtual" >
     <remap from="robot_description" to="arm_description"/>
     <param name="shadowhand_prefix" type="string" value="sr_arm/" />
     <param name="gazebo_joint_states_prefix" type="string" value="gazebo/" />
@@ -25,29 +24,10 @@
     <param name="publish_frequency" type="double" value="20.0" />
   </node> 
 
-  <!-- Robot state publisher: publishes tf information regarding the positions of the arm -->
-  <node pkg="robot_state_publisher" type="state_publisher"
-	name="robot_state_publisher_pos_arm">      
-    <remap from="robot_description" to="arm_description"/>
-    <remap from="joint_states" to="/sr_arm/position/joint_states" />
-    <param name="publish_frequency" type="double" value="10.0" />
-    <param name="tf_prefix" type="string" value="sr_arm/position" />
-  </node>
-
-  <!-- Robot state publisher: publishes tf information regarding the  targets of the arm -->
-  <node pkg="robot_state_publisher" type="state_publisher"
-	name="robot_state_publisher_target_arm">      
-    <remap from="robot_description" to="arm_description"/>
-    <remap from="joint_states" to="sr_arm/target/joint_states" />
-    <param name="publish_frequency" type="double" value="1.0" />
-    <param name="tf_prefix" type="string" value="sr_arm/target" />
-  </node>
-
 
   <!--  SHADOWHAND -->
 
-  <node pkg="sr_hand" name="shadowhand"
-	type="shadowhand_virtual" >
+  <node pkg="sr_hand" name="shadowhand"	type="shadowhand_virtual" >
     <remap from="robot_description" to="hand_description"/>
     <param name="gazebo_joint_states_prefix" type="string" value="gazebo/" />
     <param name="shadowhand_prefix" type="string" value="srh/" />
@@ -55,59 +35,12 @@
     <param name="publish_frequency" type="double" value="20.0" />
   </node>
 
-  <!-- Robot state publisher: publishes tf information regarding the position of the hand -->
+
+
   <node pkg="robot_state_publisher" type="state_publisher"
-	name="srh_robot_state_publisher_pos">      
-    <remap from="robot_description" to="hand_description"/>
-    <remap from="joint_states" to="srh/position/joint_states" />
-    <param name="publish_frequency" type="double" value="10.0" />
-    <param name="tf_prefix" type="string" value="srh/position" />
-  </node>
-
-  <!-- Robot state publisher: publishes tf information regarding the 
-       targets of the hand -->
-  <node pkg="robot_state_publisher" type="state_publisher"
-	name="srh_robot_state_publisher_target">      
-    <remap from="robot_description" to="hand_description"/>
-    <remap from="joint_states" to="srh/target/joint_states" />
-    <param name="publish_frequency" type="double" value="1.0" />
-    <param name="tf_prefix" type="string" value="srh/target" />
-  </node>
-
-
-  <!--
-     publishes fixed transform: to link the arm and the hand
-     for both targets and positions + a fixed transform to a fixed 
-     point at 0 0 0, to remap the arm base for both positions and 
-     targets.
-                                                                    -->
-
-  <node pkg="tf" type="static_transform_publisher" name="fixed_frame_pos_pub_arm" args="0 0 0 0 0 0 fixed /sr_arm/position/world 100" />
-  <node pkg="tf" type="static_transform_publisher" name="fixed_frame_target_pub_arm" args="0 0 0 0 0 0 fixed /sr_arm/target/world 100" /> 
-
-  <node pkg="tf" type="static_transform_publisher" name="link_hand_arm_pos" args="0 0 0 2.3562 0 0 /sr_arm/position/shadowarm_handsupport_motor /srh/position/forearm_motor 100" />
-  <node pkg="tf" type="static_transform_publisher" name="link_hand_arm_target" args="0 0 0 2.3562 0 0 /sr_arm/target/shadowarm_handsupport_motor /srh/target/forearm_motor 100" />
-
- <!-- Joint States positions merger to get one single vector for both arm and hand -->
-   <node pkg="sr_utilities" type="ordered_position_joint_states_merger.py" name="ordered_position_joint_states_merger"/> 
-<!-- Joint States targets merger to get one single vector for both arm and hand -->
-   <node pkg="sr_utilities" type="ordered_target_joint_states_merger.py" name="ordered_target_joint_states_merger"/>
-  
-  
- <node pkg="robot_state_publisher" type="state_publisher"
-        name="robot_state_publisher_full_pos"
-               >
-                <param name="publish_frequency" type="double" value="20.0" />
-        </node>
-
-  <!--
-     Diagnostic Aggregator
-                          -->
-  
-  <node pkg="diagnostic_aggregator" type="aggregator_node"
-        name="sr_diagnostic_aggregator" >
-    <rosparam command="load" 
-              file="$(find sr_hand)/shadowhand_analyzer.yaml" />
+        name="robot_state_publisher_full_pos">
+    <remap from="joint_states" to="gazebo/joint_states" />
+    <param name="publish_frequency" type="double" value="20.0" />
   </node>
 
 
@@ -115,37 +48,37 @@
   <rosparam file="$(find sr_teleop)/robot/hand_controller_gazebo_fast.yaml" command="load"/>
   <rosparam file="$(find sr_teleop)/robot/arm_controller_gazebo_fast.yaml" command="load"/>
 
-<!-- Cartesian pose controller for the arm -->
-<rosparam file="$(find sr_teleop)/robot/cart_controller.yaml" command="load"/>
+  <!-- Cartesian pose controller for the arm -->
+  <rosparam file="$(find sr_teleop)/robot/cart_controller.yaml" command="load"/>
 
   <group >
-    <node name="spawn_gazebo_controllers"
-	  pkg="pr2_controller_manager" type="spawner" respawn="false" output="screen"
-	args="  sa_ss_position_controller sa_es_position_controller sa_er_position_controller sh_ffj0_mixed_position_velocity_controller sh_ffj3_mixed_position_velocity_controller sh_ffj4_mixed_position_velocity_controller sh_mfj0_mixed_position_velocity_controller sh_mfj3_mixed_position_velocity_controller sh_mfj4_mixed_position_velocity_controller sh_rfj0_mixed_position_velocity_controller sh_rfj3_mixed_position_velocity_controller sh_rfj4_mixed_position_velocity_controller sh_lfj0_mixed_position_velocity_controller sh_lfj3_mixed_position_velocity_controller sh_lfj4_mixed_position_velocity_controller sh_lfj5_mixed_position_velocity_controller sh_thj1_mixed_position_velocity_controller sh_thj2_mixed_position_velocity_controller sh_thj3_mixed_position_velocity_controller sh_thj4_mixed_position_velocity_controller sh_thj5_mixed_position_velocity_controller sh_wrj1_mixed_position_velocity_controller sh_wrj2_mixed_position_velocity_controller sa_sr_position_controller" />
- 
- <node name="spawn_gazebo_cartesian_pose_controller" pkg="pr2_controller_manager" type="spawner" args="--stopped cartesian_pose_controller" />
- </group>
+    <node name="spawn_gazebo_controllers" pkg="pr2_controller_manager" type="spawner" respawn="false" output="screen"
+	  args="  sa_ss_position_controller sa_es_position_controller sa_er_position_controller sh_ffj0_mixed_position_velocity_controller sh_ffj3_mixed_position_velocity_controller sh_ffj4_mixed_position_velocity_controller sh_mfj0_mixed_position_velocity_controller sh_mfj3_mixed_position_velocity_controller sh_mfj4_mixed_position_velocity_controller sh_rfj0_mixed_position_velocity_controller sh_rfj3_mixed_position_velocity_controller sh_rfj4_mixed_position_velocity_controller sh_lfj0_mixed_position_velocity_controller sh_lfj3_mixed_position_velocity_controller sh_lfj4_mixed_position_velocity_controller sh_lfj5_mixed_position_velocity_controller sh_thj1_mixed_position_velocity_controller sh_thj2_mixed_position_velocity_controller sh_thj3_mixed_position_velocity_controller sh_thj4_mixed_position_velocity_controller sh_thj5_mixed_position_velocity_controller sh_wrj1_mixed_position_velocity_controller sh_wrj2_mixed_position_velocity_controller sa_sr_position_controller" />
+    <node name="spawn_gazebo_cartesian_pose_controller" pkg="pr2_controller_manager" type="spawner" args="--stopped cartesian_pose_controller" />
+  </group>
 
   <!--  Launch the cyberglove -->
-   <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
+  <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
 
- <!-- Launch the wintracker -->
-<include file="$(find wintracker)/launch/wintracker.launch" /> 
+  <!-- Launch the wintracker -->
+  <include file="$(find wintracker)/launch/wintracker.launch" /> 
 
-<!--Launch the node for teleoperating the arm-->
-   <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen" ns="sr_arm_teleop">
-      <rosparam file="$(find sr_teleop)/robot/config.yaml" command="load"/>
-       <remap from="pose" to="/wintracker/pose"/>
-       <remap from="get_pose" to="/wintracker/get_pose"/>
-       <remap from="command" to="/cartesian_pose_controller/command"/>
-       <remap from="switch_controller" to="/pr2_controller_manager/switch_controller"/>
-    </node>
+  <!--Launch the node for teleoperating the arm-->
+  <node pkg="sr_teleop" name="sr_arm_teleop" type="sr_arm_teleop" output="screen" ns="sr_arm_teleop">
+    <rosparam file="$(find sr_teleop)/robot/config.yaml" command="load"/>
+    <remap from="pose" to="/wintracker/pose"/>
+    <remap from="get_pose" to="/wintracker/get_pose"/>
+    <remap from="command" to="/cartesian_pose_controller/command"/>
+    <remap from="switch_controller" to="/pr2_controller_manager/switch_controller"/>
+  </node>
 
-<!-- spawn the desk model -->
+  <!-- spawn the desk model -->
   <param name="desk_description" textfile="$(find sr_teleop)/robot/desk.urdf" />
   <node name="spawn_desk" pkg="gazebo" type="spawn_model" args="-urdf -param desk_description -x 0.8 -y -0.1 -z 0.001 -model desk" respawn="false" output="screen" />
   <node pkg="tf" type="static_transform_publisher" name="desk_pos" args="0.8 -0.1 0.001 0 0 0 fixed desk_plate 100" /> 
 
- 
+
+ <node pkg="tf" type="static_transform_publisher" name="fixed_frame_pos_pub_arm" args="0 0 0 0 0 0 fixed /desk_support 100" />
+  
 </launch>
 

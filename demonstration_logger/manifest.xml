@@ -11,7 +11,9 @@
   <depend package="roscpp"/>
   <depend package="sr_robot_msgs"/>
   <depend package="std_srvs"/>
+  <depend package="sensor_msgs"/>
   <depend package="eigen"/>
+  <depend package="xmlrpcpp"/>
   <depend package="rosbag"/>
   <rosdep name="boost"/>
 </package>

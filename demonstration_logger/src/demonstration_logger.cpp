@@ -11,6 +11,11 @@
 #include <fstream>
 #include <boost/bind.hpp>
 #include "rosbag/bag.h"
+#include <sr_robot_msgs/joint.h>
+// #include <sys/time.h>
+// #include <time.h>
+//#include <XmlRpcValue.h>
+#include <vector>
 
 //-------------------------------------------------------------------
 DemonstrationLogger::DemonstrationLogger() : nh_private_("~")
@@ -28,7 +33,8 @@ DemonstrationLogger::DemonstrationLogger() : nh_private_("~")
 
     start_log_srv_ = nh_.advertiseService("start_log",&DemonstrationLogger::startLog,this);
     stop_log_srv_ = nh_.advertiseService("stop_log",&DemonstrationLogger::stopLog,this);
-
+    take_snapshot_srv_= nh_.advertiseService("take_snapshot",&DemonstrationLogger::takeSnapshot,this);
+      
 }
 //-------------------------------------------------------------------
 void DemonstrationLogger::initHandJoints()
@@ -60,10 +66,11 @@ void DemonstrationLogger::handJointStatesCallback(sr_robot_msgs::sendupdate::Con
   Eigen::VectorXd joint_states;
   sendupdateToEigen(msg,joint_states);
 
+  lock_.lock();
   std::ofstream file;
   file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
 
-  file<<ros::WallTime::now().toNSec()<<" ";
+  file<<ros::Time::now().toNSec()<<" ";
   for(unsigned int i=0; i<joint_states.size();i++)
     file<<joint_states(i)<<" ";
 
@@ -71,12 +78,143 @@ void DemonstrationLogger::handJointStatesCallback(sr_robot_msgs::sendupdate::Con
   file.close();
 
   
-
   rosbag::Bag bag;
   bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
   bag.write("sendupdate", ros::Time::now(), *msg);
   bag.close();
+  lock_.unlock();
 
+}
+//-------------------------------------------------------------------
+void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg,std::string log_name)
+{
+  //jointStateToEigen(msg,joint_states);  
+  unsigned int n_joints=msg->name.size();
+  sr_robot_msgs::sendupdate sud;
+  sr_robot_msgs::joint joint;
+  sud.sendupdate_length=n_joints;
+  
+  lock_.lock();
+  std::ofstream file;
+  file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
+
+ file<<"#time";
+  for (unsigned int i=0; i<n_joints;i++)
+    file<<"#"+msg->name[i];
+
+  file<<'\n';  
+
+  file<<ros::Time::now().toNSec()<<" ";
+  for(unsigned int i=0; i<n_joints;i++)
+    {
+    file<<msg->position[i]*180/PI<<" ";
+    joint.joint_name=msg->name[i];
+    joint.joint_target=msg->position[i]*180/PI;
+    sud.sendupdate_list.push_back(joint);
+    }
+
+  file<<"\n";
+  file.close();
+
+  rosbag::Bag bag;
+  bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
+  bag.write("sendupdate", ros::Time::now(), sud);
+  bag.close();
+
+  lock_.unlock();
+
+ snapshot_sub_.shutdown();
+ ROS_INFO("Wrote Snapshot to %s",(log_dir_+log_name+".txt").c_str());
+
+}
+//-------------------------------------------------------------------
+// void DemonstrationLogger::handJointStatesGazeboCallback(sensor_msgs::JointState::ConstPtr msg,std::string log_name)
+// {
+//   //  struct timeval start, end;
+//   // double c_time;
+//   // gettimeofday(&start,0);
+ 
+//    Eigen::VectorXd joint_states;
+//    gazeboJointStatesToEigen(msg,joint_states);
+
+//    std::ofstream file;
+//    file.open((log_dir_+log_name+"_gazebo.txt").c_str(), std::ios::out | std::ios::app );
+
+//    file<<msg->header.stamp.toNSec()<<" ";
+//    for(unsigned int i=0; i<joint_states.size();i++)
+//     file<<joint_states(i)<<" ";
+
+//   file<<"\n";
+
+
+//   file.close();
+
+//   // gettimeofday(&end,0);
+//   // c_time = end.tv_sec - start.tv_sec + 0.000001 * (end.tv_usec - start.tv_usec);
+//   // std::cout<<"Frequency: "<<1/c_time<<" Hz"<<std::endl;
+
+// }
+ //-------------------------------------------------------------------
+void DemonstrationLogger::writeFieldNames(std::string const & file_path)
+ {
+   std::vector<std::string> joint_names(hand_joints_.size());
+   for ( XmlRpc::XmlRpcValue::iterator it=hand_joints_.begin() ; it != hand_joints_.end(); it++ )
+     joint_names[(int)it->second]=(std::string)it->first;
+
+  std::fstream file;
+  file.open(file_path.c_str(),std::ios::out);
+  file<<"#time";
+
+  for(unsigned int i=0;i<joint_names.size();i++)     
+    file<<"#"+joint_names[i];
+
+  file<<'\n';
+   file.close();
+}
+ //-------------------------------------------------------------------
+bool DemonstrationLogger::takeSnapshot(demonstration_logger::StartLog::Request &req, demonstration_logger::StartLog::Response &res)
+ {
+   if(req.log_name.empty())
+     {
+       ROS_ERROR("Invalid logging name, cannot start logging.");
+       return false;
+     }
+
+   lock_.lock();
+
+   std::fstream file;
+   file.open((log_dir_+req.log_name+".txt").c_str(),std::ios::in);
+   if(file.is_open())
+   {
+     file.close();
+     ROS_ERROR("File %s already exists. Choose a different name.",(log_dir_+req.log_name+".txt").c_str());
+     lock_.unlock();
+     return false;
+   }
+ file.close();
+
+
+   file.open((log_dir_+req.log_name+".bag").c_str(), std::ios::binary | std::ios::in);
+   if(file.is_open())
+   {
+     file.close();
+     ROS_ERROR("File %s already exists. Choose a different name.",(log_dir_+req.log_name+".bag").c_str());
+     lock_.unlock();
+     return false;
+   }
+   file.close();
+
+   snapshot_sub_ = nh_.subscribe<sensor_msgs::JointState>("joint_states", 1, boost::bind(&DemonstrationLogger::snapshotCallback,this,_1, req.log_name));
+
+   //create an empty .bag file which will be appended in the JointStates callback
+  rosbag::Bag bag;
+  bag.open((log_dir_+req.log_name+".bag").c_str(), rosbag::bagmode::Write);
+  bag.close();
+
+   lock_.unlock();
+
+   ROS_INFO("Saving snapshot to %s",(log_dir_+req.log_name+".txt").c_str());
+   return true;
 }
  //-------------------------------------------------------------------
 bool DemonstrationLogger::startLog(demonstration_logger::StartLog::Request &req, demonstration_logger::StartLog::Response &res)
@@ -87,44 +225,59 @@ bool DemonstrationLogger::startLog(demonstration_logger::StartLog::Request &req,
        return false;
      }
 
+   lock_.lock();
    std::fstream file;
    file.open((log_dir_+req.log_name+".txt").c_str(),std::ios::in);
    if(file.is_open())
    {
      file.close();
      ROS_ERROR("File %s already exists. Choose a different name.",(log_dir_+req.log_name+".txt").c_str());
+     lock_.unlock();
      return false;
    }
-   file.close();
+ file.close();
+
+ writeFieldNames(log_dir_+req.log_name+".txt");
+
+   // file.open((log_dir_+req.log_name+"_gazebo.txt").c_str(),std::ios::in);
+   // if(file.is_open())
+   // {
+   //   file.close();
+   //   ROS_ERROR("File %s already exists. Choose a different name.",(log_dir_+req.log_name+"_gazebo.txt").c_str());
+   //   return false;
+   // }
+   // file.close();
+
 
    file.open((log_dir_+req.log_name+".bag").c_str(), std::ios::binary | std::ios::in);
    if(file.is_open())
    {
      file.close();
      ROS_ERROR("File %s already exists. Choose a different name.",(log_dir_+req.log_name+".bag").c_str());
+     lock_.unlock();
      return false;
    }
    file.close();
 
-   lock_.lock();
-   hand_jointstates_sub_ = nh_.subscribe<sr_robot_msgs::sendupdate>("hand_joint_states", 1, boost::bind(&DemonstrationLogger::handJointStatesCallback,this,_1, req.log_name));
-
-   lock_.unlock();
-
+   hand_jointstates_sub_ = nh_.subscribe<sr_robot_msgs::sendupdate>("hand_joint_states", 10, boost::bind(&DemonstrationLogger::handJointStatesCallback,this,_1, req.log_name));
+   // hand_jointstates_gazebo_sub_ = nh_.subscribe<sensor_msgs::JointState>("hand_joint_states_gazebo", 10, boost::bind(&DemonstrationLogger::handJointStatesGazeboCallback,this,_1, req.log_name));
+  
    //create an empty .bag file which will be appended in the handJointStates callback
   rosbag::Bag bag;
   bag.open((log_dir_+req.log_name+".bag").c_str(), rosbag::bagmode::Write);
   bag.close();
 
+ lock_.unlock();
+
    ROS_INFO("Started logging to %s",(log_dir_+req.log_name+".txt").c_str());
    return true;
 }
-
  //-------------------------------------------------------------------
 bool DemonstrationLogger::stopLog(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
     lock_.lock();
     hand_jointstates_sub_.shutdown();
+    //   hand_jointstates_gazebo_sub_.shutdown();
     lock_.unlock();
     ROS_INFO("Stopped logging");
     return true;
@@ -136,10 +289,43 @@ void DemonstrationLogger::sendupdateToEigen(sr_robot_msgs::sendupdate::ConstPtr 
  {
    joint_states.resize(hand_joints_.size());
   
-   for(int i=0; i<hand_joints_.size();i++)
+   for(unsigned int i=0; i<msg->sendupdate_list.size() ;i++)
+     {
+       if(hand_joints_.hasMember(msg->sendupdate_list[i].joint_name))
        joint_states((int)hand_joints_[msg->sendupdate_list[i].joint_name])=msg->sendupdate_list[i].joint_target;
-
+     }
 }
+ //-------------------------------------------------------------------
+// void DemonstrationLogger::jointStateToEigen(sensor_msgs::JointState::ConstPtr msg,Eigen::VectorXd & joint_states)
+//  {
+//    joint_states.resize(msg->name.size());
+  
+//    for(unsigned int i=0; i< joint_states.size() ;i++)
+//      joint_states(i)=msg->position[i];
+     
+// }
 //------------------------------------------------------------------------------------------------------
+// void DemonstrationLogger::gazeboJointStatesToEigen(sensor_msgs::JointState::ConstPtr msg,Eigen::VectorXd & joint_states)
+// {
+//  joint_states.resize(hand_joints_.size());
+//  std::string joint_name;
+ 
+//  for(unsigned int i=0; i<msg->position.size();i++)
+//      {
+//        joint_name=msg->name[i];
 
+//        if(!strcmp(joint_name.c_str(),"FFJ1"))
+// 	 joint_name="FFJ0";
+//        else if(!strcmp(joint_name.c_str(),"MFJ1"))
+// 	 joint_name="MFJ0";
+//        else if(!strcmp(joint_name.c_str(),"RFJ1"))
+// 	 joint_name="RFJ0";
+//        else if(!strcmp(joint_name.c_str(),"LFJ1"))
+// 	 joint_name="LFJ0";
+
+//        if(hand_joints_.hasMember(joint_name))
+// 	 joint_states((int)hand_joints_[joint_name])=msg->position[i];
+//      }
+// }
+//------------------------------------------------------------------------------------------------------
 
