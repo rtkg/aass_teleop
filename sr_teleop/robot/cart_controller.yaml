@@ -1,7 +1,7 @@
 cartesian_pose_controller:
   type: robot_mechanism_controllers/CartesianPoseController
   root_name: shadowarm_base
-  tip_name:  shadowarm_handsupport_motor
+  tip_name:  shadowarm_handsupport
   fb_trans:
     p: 1000.0
     i: 5

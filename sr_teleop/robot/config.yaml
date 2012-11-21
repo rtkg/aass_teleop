@@ -3,7 +3,7 @@ default_controllers: [sa_er_position_controller, sa_es_position_controller, sa_s
 cartesian_pose_controller: cartesian_pose_controller
 T_T_S: [0.0,0.7071,0.7071,0.0,-0.7071,0.7071,1.0,0.0,0.0,0.0,0.0,0.2] #static pose offset between the sensor and the tracked link expressed in the coordinate frame of the tracked link
 base_frame_id: /sr_arm/position/shadowarm_base #the base frame has to conform to the root_name of the cartesian controller
-track_frame_id: /sr_arm/position/shadowarm_handsupport_motor #the track frame has to conform to the tip_name of the cartesian controller (the tracked link)
+track_frame_id: /sr_arm/position/shadowarm_handsupport #the track frame has to conform to the tip_name of the cartesian controller (the tracked link)
 safety_zone_radius: 1 #The tracked link origin cannot leave a sphere specified with this parameter. The sphere is centered at the initial position    
 
   
