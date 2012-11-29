@@ -1,48 +1,11 @@
 <launch>
 
-  <!-- Set the robot descriptions-->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find sr_description)/robots/arm_and_hand_motor_ellipsoid.urdf.xacro'" />
-  <param name="hand_description" command="$(find xacro)/xacro.py '$(find sr_description)/robots/shadowhand_motor_ellipsoid.urdf.xacro'" />
-  <param name="arm_description" command="$(find xacro)/xacro.py '$(find sr_description)/robots/sr_arm_motor.urdf.xacro'" />
-
   <!-- start gazebo with an empty plane -->
   <include file="$(find sr_hand)/launch/gazebo/loaders/empty_world.launch"/>
 
-  <!-- spawn the arm and hand model -->
-  <node name="spawn_hand" pkg="gazebo" type="spawn_model" args="-urdf -param robot_description -z 0.01 -model shadow_model" respawn="false" output="screen" />
+  <include file="$(find sr_description)/loaders/load_arm_and_hand_model.launch" />
 
-
-  <!-- Starts Shadow's interface -->
-
-  <!--  SHADOWARM    -->
-
-  <node pkg="sr_hand" name="shadowarm" type="shadowarm_virtual" >
-    <remap from="robot_description" to="arm_description"/>
-    <param name="shadowhand_prefix" type="string" value="sr_arm/" />
-    <param name="gazebo_joint_states_prefix" type="string" value="gazebo/" />
-    <param name="publish_frequency_diagnostics" type="double" value="1.0" />
-    <param name="publish_frequency" type="double" value="20.0" />
-  </node> 
-
-
-  <!--  SHADOWHAND -->
-
-  <node pkg="sr_hand" name="shadowhand"	type="shadowhand_virtual" >
-    <remap from="robot_description" to="hand_description"/>
-    <param name="gazebo_joint_states_prefix" type="string" value="gazebo/" />
-    <param name="shadowhand_prefix" type="string" value="srh/" />
-    <param name="publish_frequency_diagnostics" type="double" value="1.0" />
-    <param name="publish_frequency" type="double" value="20.0" />
-  </node>
-
-
-
-  <node pkg="robot_state_publisher" type="state_publisher"
-        name="robot_state_publisher_full_pos">
-    <remap from="joint_states" to="gazebo/joint_states" />
-    <param name="publish_frequency" type="double" value="20.0" />
-  </node>
-
+  <node name="spawn_hand" pkg="gazebo" type="spawn_model" args="-urdf -param robot_description -z 0.01 -model shadow_model -J ShoulderJSwing 0.78 -J ElbowJSwing 2.0" respawn="false" output="screen" />
 
   <!-- Joint Controllers for the arm -->
   <rosparam file="$(find sr_teleop)/robot/hand_controller_gazebo_fast.yaml" command="load"/>
@@ -57,6 +20,12 @@
     <node name="spawn_gazebo_cartesian_pose_controller" pkg="pr2_controller_manager" type="spawner" args="--stopped cartesian_pose_controller" />
   </group>
 
+  <node pkg="robot_state_publisher" type="state_publisher"
+        name="robot_state_publisher_full_pos">
+    <remap from="joint_states" to="gazebo/joint_states" />
+    <param name="publish_frequency" type="double" value="20.0" />
+  </node>
+ 
   <!--  Launch the cyberglove -->
   <include file="$(find aass_cyberglove)/launch/aass_cyberglove.launch" />
 
@@ -78,7 +47,10 @@
   <node pkg="tf" type="static_transform_publisher" name="desk_pos" args="0.8 -0.1 0.001 0 0 0 fixed desk_plate 100" /> 
 
 
- <node pkg="tf" type="static_transform_publisher" name="fixed_frame_pos_pub_arm" args="0 0 0 0 0 0 fixed /desk_support 100" />
+ 
   
+  <!-- Launch the Shadow Interface -->
+  <include file="$(find sr_hand)/launch/sr_arm_and_hand.launch" /> 
+
 </launch>
 

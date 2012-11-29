@@ -12,6 +12,7 @@
 #include <boost/bind.hpp>
 #include "rosbag/bag.h"
 #include <sr_robot_msgs/joint.h>
+#include <std_msgs/Float64.h>
 // #include <sys/time.h>
 // #include <time.h>
 //#include <XmlRpcValue.h>
@@ -65,23 +66,27 @@ void DemonstrationLogger::handJointStatesCallback(sr_robot_msgs::sendupdate::Con
 {
   Eigen::VectorXd joint_states;
   sendupdateToEigen(msg,joint_states);
+  std_msgs::Float64 angle;
 
   lock_.lock();
   std::ofstream file;
+  rosbag::Bag bag;
+  bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
   file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
 
   file<<ros::Time::now().toNSec()<<" ";
   for(unsigned int i=0; i<joint_states.size();i++)
-    file<<joint_states(i)<<" ";
+    {
+      file<<joint_states(i)<<" ";
+      angle.data=joint_states(i)*PI/180;
+      bag.write(msg->sendupdate_list[i].joint_name+"_topic", ros::Time::now(), angle);
+    }
 
   file<<"\n";
-  file.close();
 
-  
-  rosbag::Bag bag;
-  bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
-  bag.write("sendupdate", ros::Time::now(), *msg);
+  file.close();
   bag.close();
+
   lock_.unlock();
 
 }
@@ -90,42 +95,68 @@ void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg
 {
   //jointStateToEigen(msg,joint_states);  
   unsigned int n_joints=msg->name.size();
-  sr_robot_msgs::sendupdate sud;
-  sr_robot_msgs::joint joint;
-  sud.sendupdate_length=n_joints;
+  // sr_robot_msgs::sendupdate sud;
+  // sr_robot_msgs::joint joint;
+  //sud.sendupdate_length=n_joints;
   
   lock_.lock();
   std::ofstream file;
   file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
 
- file<<"#time";
+  file<<"#time";
+
   for (unsigned int i=0; i<n_joints;i++)
+    {
+      bool has_j2=false;
+      if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
+	has_j2=true;
+
+      if ( (std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2)
+	continue;
+ 
+
     file<<"#"+msg->name[i];
+    }
 
   file<<'\n';  
+
+  // file<<ros::Time::now().toNSec()<<" ";
+  // for(unsigned int i=0; i<n_joints;i++)
+  //   {
+  //   file<<msg->position[i]*180/PI<<" ";
+  //   joint.joint_name=msg->name[i];
+  //   joint.joint_target=msg->position[i]*180/PI;
+  //   sud.sendupdate_list.push_back(joint);
+  //   }
+
+  std_msgs::Float64 angle;
+  rosbag::Bag bag;
+  bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
 
   file<<ros::Time::now().toNSec()<<" ";
   for(unsigned int i=0; i<n_joints;i++)
     {
-    file<<msg->position[i]*180/PI<<" ";
-    joint.joint_name=msg->name[i];
-    joint.joint_target=msg->position[i]*180/PI;
-    sud.sendupdate_list.push_back(joint);
+      bool has_j2=false;
+      if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
+	has_j2=true;
+
+      if ( (std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2)
+	continue;
+
+      file<<msg->position[i]*180/PI<<" ";
+      angle.data=msg->position[i];
+      bag.write(msg->name[i]+"_topic", ros::Time::now(), angle);
     }
 
   file<<"\n";
-  file.close();
 
-  rosbag::Bag bag;
-  bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
-  bag.write("sendupdate", ros::Time::now(), sud);
+  file.close();
   bag.close();
 
   lock_.unlock();
 
- snapshot_sub_.shutdown();
- ROS_INFO("Wrote Snapshot to %s",(log_dir_+log_name+".txt").c_str());
-
+  snapshot_sub_.shutdown();
+  ROS_INFO("Wrote Snapshot to %s",(log_dir_+log_name+".txt").c_str());
 }
 //-------------------------------------------------------------------
 // void DemonstrationLogger::handJointStatesGazeboCallback(sensor_msgs::JointState::ConstPtr msg,std::string log_name)
