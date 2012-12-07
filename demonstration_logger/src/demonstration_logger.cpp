@@ -111,7 +111,7 @@ void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg
       if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
 	has_j2=true;
 
-      if ( (std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2)
+   if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
 	continue;
  
 
@@ -140,7 +140,7 @@ void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg
       if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
 	has_j2=true;
 
-      if ( (std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2)
+      if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
 	continue;
 
       file<<msg->position[i]*180/PI<<" ";
