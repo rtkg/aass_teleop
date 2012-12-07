@@ -143,7 +143,7 @@ void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg
       if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
 	continue;
 
-      file<<msg->position[i]*180/PI<<" ";
+      file<<msg->position[i]<<" ";
       angle.data=msg->position[i];
       bag.write(msg->name[i]+"_topic", ros::Time::now(), angle);
     }
