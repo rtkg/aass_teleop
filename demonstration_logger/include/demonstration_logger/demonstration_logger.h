@@ -18,6 +18,7 @@
 #include <sr_robot_msgs/sendupdate.h>
 #include <sensor_msgs/JointState.h>
 #include <string>
+#include <map>
 #include <boost/noncopyable.hpp>
 
 class DemonstrationLogger : public boost::noncopyable
@@ -45,7 +46,7 @@ class DemonstrationLogger : public boost::noncopyable
   ros::ServiceServer take_snapshot_srv_;
   ros::Subscriber hand_jointstates_sub_;
   ros::Subscriber snapshot_sub_;
-  
+  std::map<std::string,double> joint_map_;
 
  /*  ///////////////// */
  /*  //  CALLBACKS  // */

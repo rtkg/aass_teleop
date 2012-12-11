@@ -60,6 +60,32 @@ void DemonstrationLogger::initHandJoints()
   hand_joints_["LFJ5"]=17;
   hand_joints_["WRJ1"]=18;
   hand_joints_["WRJ2"]=19;
+
+  joint_map_["THJ1"]=0;
+  joint_map_["THJ2"]=0;
+  joint_map_["THJ3"]=0;
+  joint_map_["THJ4"]=0;
+  joint_map_["THJ5"]=0;
+  joint_map_["FFJ0"]=0;
+  joint_map_["FFJ3"]=0;
+  joint_map_["FFJ4"]=0;
+  joint_map_["MFJ0"]=0;
+  joint_map_["MFJ3"]=0;
+  joint_map_["MFJ4"]=0;
+  joint_map_["RFJ0"]=0;
+  joint_map_["RFJ3"]=0;
+  joint_map_["RFJ4"]=0;
+  joint_map_["LFJ0"]=0;
+  joint_map_["LFJ3"]=0;
+  joint_map_["LFJ4"]=0;
+  joint_map_["LFJ5"]=0;
+  joint_map_["WRJ1"]=0;
+  joint_map_["WRJ2"]=0;
+  joint_map_["ElbowJRotate"]=0;
+  joint_map_["ElbowJSwing"]=0;
+  joint_map_["ShoulderJRotate"]=0;
+  joint_map_["ShoulderJSwing"]=0;
+
 }
 //-------------------------------------------------------------------
 void DemonstrationLogger::handJointStatesCallback(sr_robot_msgs::sendupdate::ConstPtr msg,std::string log_name)
@@ -75,7 +101,7 @@ void DemonstrationLogger::handJointStatesCallback(sr_robot_msgs::sendupdate::Con
   file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
 
   file<<ros::Time::now().toNSec()<<" ";
-  for(unsigned int i=0; i<joint_states.size();i++)
+  for( int i=0; i<joint_states.size();i++)
     {
       file<<joint_states(i)<<" ";
       angle.data=joint_states(i)*PI/180;
@@ -100,23 +126,62 @@ void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg
   //sud.sendupdate_length=n_joints;
   
   lock_.lock();
-  std::ofstream file;
+  initHandJoints();
+
+  std::map<std::string,double>::iterator it;
+//std::string name;
+
+for (unsigned int i=0; i<n_joints;i++)
+  {
+    it=joint_map_.find(msg->name[i].c_str());
+
+    if(it!=joint_map_.end())
+      {
+	(*it).second=msg->position[i];
+      }
+    else if((std::strcmp(msg->name[i].c_str(),"FFJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"FFJ2") == 0))
+      {
+          it=joint_map_.find("FFJ0");
+          (*it).second=(*it).second+msg->position[i];
+      }
+    else if((std::strcmp(msg->name[i].c_str(),"MFJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"MFJ2") == 0))
+      {
+          it=joint_map_.find("MFJ0");
+          (*it).second=(*it).second+msg->position[i];
+      }
+    else if((std::strcmp(msg->name[i].c_str(),"RFJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"RFJ2") == 0))
+      {
+          it=joint_map_.find("RFJ0");
+          (*it).second=(*it).second+msg->position[i];
+      }
+    else if((std::strcmp(msg->name[i].c_str(),"LFJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"LFJ2") == 0))
+      {
+          it=joint_map_.find("LFJ0");
+          (*it).second=(*it).second+msg->position[i];
+      }
+}
+
+
+   std::ofstream file;
   file.open((log_dir_+log_name+".txt").c_str(), std::ios::out | std::ios::app );
 
   file<<"#time";
 
-  for (unsigned int i=0; i<n_joints;i++)
-    {
-      bool has_j2=false;
-      if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
-	has_j2=true;
+  for (it=joint_map_.begin(); it !=joint_map_.end(); ++it)
+    file<<"#"+it->first;
 
-   if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
-	continue;
+  // for (unsigned int i=0; i<n_joints;i++)
+  //   {
+  //     bool has_j2=false;
+  //     if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
+  // 	has_j2=true;
+
+  //  if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
+  // 	continue;
  
 
-    file<<"#"+msg->name[i];
-    }
+  //   file<<"#"+msg->name[i];
+  //   }
 
   file<<'\n';  
 
@@ -132,21 +197,28 @@ void DemonstrationLogger::snapshotCallback(sensor_msgs::JointState::ConstPtr msg
   std_msgs::Float64 angle;
   rosbag::Bag bag;
   bag.open((log_dir_+log_name+".bag").c_str(), rosbag::bagmode::Append);
-
   file<<ros::Time::now().toNSec()<<" ";
-  for(unsigned int i=0; i<n_joints;i++)
+
+  for (it=joint_map_.begin(); it !=joint_map_.end(); ++it)
     {
-      bool has_j2=false;
-      if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
-	has_j2=true;
-
-      if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
-	continue;
-
-      file<<msg->position[i]<<" ";
-      angle.data=msg->position[i];
-      bag.write(msg->name[i]+"_topic", ros::Time::now(), angle);
+    file<<it->second<<" ";
+    angle.data=it->second;
+     bag.write(it->first+"_topic", ros::Time::now(), angle);
     }
+
+  // for(unsigned int i=0; i<n_joints;i++)
+  //   {
+  //     bool has_j2=false;
+  //     if ( (std::strcmp(msg->name[i].c_str(),"THJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"THJ2") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ1") == 0) || (std::strcmp(msg->name[i].c_str(),"WRJ2") == 0))
+  // 	has_j2=true;
+
+  //     if ( ((std::strcmp((msg->name[i].substr(3,1)).c_str(),"1")==0 || std::strcmp((msg->name[i].substr(3,1)).c_str(),"2")==0) && !has_j2) || (std::strcmp(msg->name[i].c_str(),"arm_link")==0))
+  // 	continue;
+
+  //     file<<msg->position[i]<<" ";
+  //     angle.data=msg->position[i];
+  //     bag.write(msg->name[i]+"_topic", ros::Time::now(), angle);
+  //   }
 
   file<<"\n";
 
