@@ -52,7 +52,7 @@ SrArmTeleop::SrArmTeleop() : nh_private_("~")
       for (int32_t i = 0; i < T_T_S.size(); ++i) 
 	ROS_ASSERT(T_T_S[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
 
-      T_T_S_.setBasis(btMatrix3x3(T_T_S[0],T_T_S[1],T_T_S[2],T_T_S[3],T_T_S[4],T_T_S[5],T_T_S[6],T_T_S[7],T_T_S[8]));
+      T_T_S_.setBasis(tf::Matrix3x3(T_T_S[0],T_T_S[1],T_T_S[2],T_T_S[3],T_T_S[4],T_T_S[5],T_T_S[6],T_T_S[7],T_T_S[8]));
       T_T_S_.setOrigin(tf::Vector3(T_T_S[9],T_T_S[10],T_T_S[11]));
     }
   else
@@ -112,7 +112,8 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   if(offset.norm() > sz_rad_)
     {
       ROS_WARN("Violating safety zone boundary - locking the position of the tracked link");
-      tf::VectorEigenToTF(tl_init_pos_+sz_rad_*offset/offset.norm(), rmp_v);
+      tf::vectorEigenToTF(tl_init_pos_+sz_rad_*offset/offset.norm(), rmp_v);
+
    }
  
   track_ps.header.frame_id="/"+getRelativeName(base_frame_id_);//The controller needs the relative base frame id name to match it with the root_link
@@ -183,7 +184,7 @@ bool SrArmTeleop::startTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Re
     return false;
   }
 
-  tf::VectorTFToEigen(B_T_T.getOrigin(),tl_init_pos_); //memorize the initial position of the tracked link - necessary for the safety zone maintainence
+  tf::vectorTFToEigen(B_T_T.getOrigin(),tl_init_pos_); //memorize the initial position of the tracked link - necessary for the safety zone maintainence
 
   B_T_E_=B_T_T*T_T_S_*E_T_S.inverse(); //setting the static transformation from the emitter to the base_link coordinate frame
 

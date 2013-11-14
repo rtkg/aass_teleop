@@ -12,12 +12,12 @@
   <depend package="aass_cyberglove"/>
   <depend package="sr_cyberglove_remapper"/>
   <depend package="sr_hand"/>
-  <depend package="eigen"/>
   <depend package="pr2_controller_manager"/>
   <depend package="pr2_mechanism_msgs"/>
   <depend package="tf"/>
   <depend package="tf_conversions"/>
   <rosdep name="boost"/>
+  <rosdep name="eigen"/>
 </package>
 
 

@@ -13,10 +13,10 @@
   <depend package="std_srvs"/>
   <depend package="std_msgs"/>
   <depend package="sensor_msgs"/>
-  <depend package="eigen"/>
   <depend package="xmlrpcpp"/>
   <depend package="rosbag"/>
   <rosdep name="boost"/>
+  <rosdep name="eigen"/>
 </package>
 
 
