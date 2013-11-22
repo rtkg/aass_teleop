@@ -112,7 +112,7 @@ void SrArmTeleop::sensorCallback(const geometry_msgs::PoseStamped & ps)
   if(offset.norm() > sz_rad_)
     {
       ROS_WARN("Violating safety zone boundary - locking the position of the tracked link");
-      tf::vectorEigenToTF(tl_init_pos_+sz_rad_*offset/offset.norm(), rmp_v);
+      tf::VectorEigenToTF(tl_init_pos_+sz_rad_*offset/offset.norm(), rmp_v);
 
    }
  
@@ -184,7 +184,7 @@ bool SrArmTeleop::startTeleop(std_srvs::Empty::Request &req, std_srvs::Empty::Re
     return false;
   }
 
-  tf::vectorTFToEigen(B_T_T.getOrigin(),tl_init_pos_); //memorize the initial position of the tracked link - necessary for the safety zone maintainence
+  tf::VectorTFToEigen(B_T_T.getOrigin(),tl_init_pos_); //memorize the initial position of the tracked link - necessary for the safety zone maintainence
 
   B_T_E_=B_T_T*T_T_S_*E_T_S.inverse(); //setting the static transformation from the emitter to the base_link coordinate frame
 
