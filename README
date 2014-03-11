@@ -29,7 +29,7 @@ Installing Shadow Robot Simulator in ROS (for HANDLE Project)
 - bzr:
     uri: lp:sr-ros-interface/stable
     local-name: shadow_robot
-    version: 7
+    version: 4
 
 - bzr:
     uri: 'lp:sr-ros-interface-ethercat'
@@ -62,7 +62,7 @@ GAZEBO=1 rosmake --rosdep-install sr_gazebo_plugins
     Build extra packages 
 
 rosmake sr_external_dependencies
-rosmake --rosdep-install sr_control_gui sr_tactile_sensors sr_kinematics
+rosmake --rosdep-install sr_control_gui cyberglove sr_remappers sr_tactile_sensors sr_kinematics
 
 Install the KCL sensors
 
