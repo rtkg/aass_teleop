@@ -1,7 +1,7 @@
 <launch>
 
   <!-- start gazebo with an empty plane -->
-  <include file="$(find sr_hand)/launch/gazebo/loaders/empty_world.launch"/>
+  <include file="$(find sr_hand)/launch/gazebo/empty_world.launch"/>
 
   <include file="$(find sr_description)/loaders/load_arm_and_hand_model.launch" />
 

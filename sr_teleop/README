@@ -6,4 +6,4 @@ ShoulderJRotate,joint_target: 0},{joint_name: ShoulderJSwing,joint_target: 40}]}
 
 and call the /start_teleop service. This service will synchronize the pose of the tracked link expressed in the given base frame and the pose of the sensor in the emitter frame. Parameters are specified in the /robot/config.yaml file. 
 
-
+EDIT: rkg, 2014-03-11: Removed some dependencies and deleted the cyberglove plugin to make it work with new revisions of the sr-ros-interface/stable code
