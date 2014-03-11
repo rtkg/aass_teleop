@@ -1,3 +1,122 @@
 ROS stack containing the packages for teleoperating the Shadow Hand
 
-Robert Krug 2011/02/14
+
+INSTALL INSTRUCTIONS FOR THE SHADOW ROBOT CODE IN ORDER TO WORK WITH SR_TELEOP
+
+Installing ros-electric-pr2-desktop
+
+    Following instructions in http://www.ros.org/wiki/Robots/PR2/electric 
+
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu natty main" > /etc/apt/sources.list.d/ros-latest.list'
+wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install ros-electric-pr2-desktop
+
+Installing Additional Tools
+
+    Source control, Python and Rosinstall 
+
+sudo apt-get install python-setuptools
+sudo easy_install -U rosinstall
+sudo apt-get install bzr bzr-explorer qbzr
+sudo apt-get install mercurial
+sudo apt-get install subversion python-svn
+
+Installing Shadow Robot Simulator in ROS (for HANDLE Project)
+
+    Copy the following code to a file named /tmp/sr_stable.rosinstall: 
+
+- bzr:
+    uri: lp:sr-ros-interface/stable
+    local-name: shadow_robot
+    version: 4
+
+- bzr:
+    uri: 'lp:sr-ros-interface-ethercat'
+    local-name: shadow_robot_ethercat
+    version: 517
+
+- svn:
+    uri: 'http://isr-uc-ros-pkg.googlecode.com/svn/stacks/serial_communication/trunk/cereal_port'
+    local-name: cereal_port
+
+    Rosinstall this file: 
+
+mkdir /home/alex/ros_workspace
+rosinstall /home/alex/ros_workspace/ /tmp/sr_stable.rosinstall /opt/ros/electric
+
+    Source the created setup.bash 
+
+source /home/alex/ros_workspace/setup.bash
+
+Compile the thing
+
+    Build sr_hand with Gazebo 
+
+GAZEBO=1 rosmake --rosdep-install sr_hand 
+GAZEBO=1 rosmake --rosdep-install sr_hardware_interface 
+GAZEBO=1 rosmake --rosdep-install sr_mechanism_controllers 
+GAZEBO=1 rosmake --rosdep-install sr_mechanism_model 
+GAZEBO=1 rosmake --rosdep-install sr_gazebo_plugins
+
+    Build extra packages 
+
+rosmake sr_external_dependencies
+rosmake --rosdep-install sr_control_gui cyberglove sr_remappers sr_tactile_sensors sr_kinematics
+
+Install the KCL sensors
+
+    Unpack KCL code to a directory eg and add kclcontloc_sim and kcl_msgs to ROSPATH.
+    Build 
+
+rosmake --rosdep-install kclcontloc_sim 
+
+    Edit arm_and_hand_motor_ellipsoid.urdf.xacro and replace full_arm_motor.urdf.xacro by full_arm_motor_with_kinect.urdf.xacro 
+
+Running it
+
+    Run the robot simulator 
+
+optirun roslaunch sr_hand gazebo_arm_and_hand_motor_ellipsoid.launch
+
+    Run the interface 
+
+roslaunch sr_hand sr_arm_motor.launch
+
+    Run the simulated sensors 
+
+roslaunch kclcontloc_sim kclcontloc_sim.launch
+
+    Run the object manipulation stack 
+
+roslaunch sr_object_manipulation_launch sr_object_manipulation.launch
+
+NOTE: MAY NEED TO RESET GAZEBO
+Configurations
+
+    Reduce the framerate 
+
+rosrun topic_tools throttle messages /camera/depth_registered/points 1
+
+Interfaces
+
+    Run the controller gui 
+
+rosrun sr_control_gui sr_control_gui
+
+    Image viewer 
+
+rosrun image_view image_view image:=/camera/image/raw
+
+    RVIZ 
+
+optirun rosrun rviz rviz
+
+    ROSGUI 
+
+rosrun rosgui rosgui
+
+Connect to the UPMC setup
+
+export ROS_MASTER_URI=http://hand:11311
+
