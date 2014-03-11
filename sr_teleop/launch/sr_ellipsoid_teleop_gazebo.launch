@@ -50,7 +50,7 @@
  
   
   <!-- Launch the Shadow Interface -->
-  <include file="$(find sr_hand)/launch/sr_arm_and_hand.launch" /> 
+  <include file="$(find sr_teleop)/launch/sr_arm_and_hand.launch" /> 
 
 </launch>
 
