@@ -11,6 +11,7 @@
   <depend package="wintracker"/>
   <depend package="aass_cyberglove"/>
   <depend package="sr_cyberglove_remapper"/>
+  <depend package="sr_description"/>
   <depend package="sr_hand"/>
   <depend package="eigen"/>
   <depend package="pr2_controller_manager"/>
